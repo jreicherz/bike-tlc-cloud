@@ -809,12 +809,12 @@
             </div>
           </div>
 
-          <!-- Live-Vorschau für Ø km/h, Wh/km und 100% Reichweite -->
+          <!-- Live-Vorschau für Wh/km und 100% Reichweite -->
           <div id="tour-energy-preview" class="sag-result-box" style="margin-top:12px;">
             <div>
-              <div style="font-size:0.78rem; color:var(--text-muted);">Live-Berechnung: Ø Geschwindigkeit, Verbrauch & 100%-Reichweite</div>
+              <div style="font-size:0.78rem; color:var(--text-muted);">Live-Berechnung: Verbrauch & 100%-Reichweite</div>
               <div id="tour-energy-preview-text" style="font-weight:700; font-size:0.88rem; margin-top:2px; color:var(--text-muted);">
-                Distanz, Fahrzeit oder Rest-Akku eingeben...
+                Distanz und Rest-Akku eingeben...
               </div>
             </div>
           </div>
@@ -841,10 +841,10 @@
       </div>
     </div>
 
-    <!-- TOURENLISTE MIT GLEICHER SCHRIFTGRÖSSE & FORMATIERUNG WIE "TOUR IN AUSWAHL" -->
+    <!-- TOURENLISTE OHNE DURCHSCHNITTSGESCHWINDIGKEIT -->
     <div class="card">
       <div class="card-header">
-        <div class="card-title"><svg class="icon"><use href="#i-list"/></svg> Eingetragene Touren, Ø km/h, HM & Effizienz</div>
+        <div class="card-title"><svg class="icon"><use href="#i-list"/></svg> Eingetragene Touren, HM, Zeit & Effizienz</div>
       </div>
 
       <!-- FILTER-, SUCH- & SORTIERLEISTE -->
@@ -864,7 +864,6 @@
             <option value="km_asc">Distanz (Kürzeste zuerst)</option>
             <option value="hm_desc">Höhenmeter (Meiste zuerst)</option>
             <option value="hours_desc">Fahrzeit (Längste zuerst)</option>
-            <option value="speed_desc">Ø Tempo (Schnellste zuerst)</option>
           </select>
         </div>
         <div>
@@ -883,7 +882,7 @@
               <th>Datum</th>
               <th>Bike</th>
               <th>Strecke</th>
-              <th>Distanz / Zeit / Ø km/h / HM</th>
+              <th>Distanz / Zeit / HM</th>
               <th>Rest-Akku</th>
               <th>Verbrauch & 100%-Reichweite</th>
               <th style="text-align:right;">Aktion</th>
@@ -2767,51 +2766,40 @@
     const bike = document.getElementById('tour-bike').value;
     const bikeObj = appData.bikes[bike];
     const km = parseFloat(document.getElementById('tour-km').value);
-    const hoursH = document.getElementById('tour-hours-h').value;
-    const hoursM = document.getElementById('tour-hours-m').value;
-    const decHours = hmToDecimalHours(hoursH, hoursM);
     const startRaw = document.getElementById('tour-battery-start').value;
     const endRaw = document.getElementById('tour-battery').value;
     const previewEl = document.getElementById('tour-energy-preview-text');
 
-    const speedStr = formatAvgSpeed(km, decHours);
-    const parts = [];
-
-    if (speedStr) {
-      parts.push(`<span class="inline-meta">${svgIcon('gauge', 'icon-sm')} Ø <strong>${speedStr}</strong></span>`);
-    }
-
-    if (bikeObj && bikeObj.batteryWh > 0 && km > 0 && endRaw !== '') {
-      const metrics = computeTourMetrics({
-        bike,
-        km,
-        batteryStart: startRaw !== '' ? parseInt(startRaw, 10) : 100,
-        batteryLeft: parseInt(endRaw, 10)
-      });
-
-      if (!metrics.hasConsumption) {
-        previewEl.innerHTML = (parts.length ? parts.join(' &nbsp;&bull;&nbsp; ') + ' &nbsp;&bull;&nbsp; ' : '') + 'Start-Akku muss größer als der Rest-Akku sein.';
-        previewEl.style.color = '#f59e0b';
-        return;
-      }
-
-      const whKmStr = metrics.whPerKm.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-      const rangeStr = Math.round(metrics.estRange100);
-      const usedWhStr = Math.round(metrics.usedWh);
-
-      parts.push(`<span class="inline-meta">${svgIcon('zap', 'icon-sm')} <strong>${whKmStr} Wh/km</strong> (-${usedWhStr} Wh)</span>`);
-      parts.push(`<span class="inline-meta">${svgIcon('flag', 'icon-sm')} 100%-Reichweite: <strong>ca. ${rangeStr} km</strong></span>`);
-    }
-
-    if (parts.length === 0) {
-      previewEl.textContent = (bikeObj && (!bikeObj.batteryWh || bikeObj.batteryWh <= 0))
-        ? 'Distanz und Fahrzeit eingeben für Live-Berechnung der Ø Geschwindigkeit...'
-        : 'Distanz, Fahrzeit oder Rest-Akku (%) eingeben für Live-Berechnung...';
+    if (bikeObj && (!bikeObj.batteryWh || bikeObj.batteryWh <= 0)) {
+      previewEl.textContent = 'Bio-Bike ohne Akku ausgewählt (keine Wh-Berechnung erforderlich).';
       previewEl.style.color = 'var(--text-muted)';
       return;
     }
 
-    previewEl.innerHTML = parts.join(' &nbsp;&bull;&nbsp; ');
+    if (!km || km <= 0 || endRaw === '') {
+      previewEl.textContent = 'Distanz und Rest-Akku (%) eingeben für Live-Berechnung...';
+      previewEl.style.color = 'var(--text-muted)';
+      return;
+    }
+
+    const metrics = computeTourMetrics({
+      bike,
+      km,
+      batteryStart: startRaw !== '' ? parseInt(startRaw, 10) : 100,
+      batteryLeft: parseInt(endRaw, 10)
+    });
+
+    if (!metrics.hasConsumption) {
+      previewEl.textContent = 'Start-Akku muss größer als der Rest-Akku sein.';
+      previewEl.style.color = '#f59e0b';
+      return;
+    }
+
+    const whKmStr = metrics.whPerKm.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const rangeStr = Math.round(metrics.estRange100);
+    const usedWhStr = Math.round(metrics.usedWh);
+
+    previewEl.innerHTML = `<span class="inline-meta">${svgIcon('zap', 'icon-sm')} <strong>${whKmStr} Wh/km</strong> (-${usedWhStr} Wh)</span> &nbsp;&bull;&nbsp; <span class="inline-meta">${svgIcon('flag', 'icon-sm')} 100%-Reichweite: <strong>ca. ${rangeStr} km</strong></span>`;
     previewEl.style.color = '#10b981';
   }
 
@@ -2976,27 +2964,20 @@
       if (sortBy === 'km_asc') return (parseFloat(a.km) || 0) - (parseFloat(b.km) || 0);
       if (sortBy === 'hm_desc') return (parseInt(b.hm || 0, 10)) - (parseInt(a.hm || 0, 10));
       if (sortBy === 'hours_desc') return (parseFloat(b.hours) || 0) - (parseFloat(a.hours) || 0);
-      if (sortBy === 'speed_desc') {
-        const sA = (parseFloat(a.hours) > 0) ? (parseFloat(a.km) / parseFloat(a.hours)) : 0;
-        const sB = (parseFloat(b.hours) > 0) ? (parseFloat(b.km) / parseFloat(b.hours)) : 0;
-        return sB - sA;
-      }
       return 0;
     });
 
     const sumKm = filtered.reduce((s, t) => s + parseFloat(t.km || 0), 0);
     const sumHm = filtered.reduce((s, t) => s + parseInt(t.hm || 0, 10), 0);
     const sumHours = filtered.reduce((s, t) => s + parseFloat(t.hours || 0), 0);
-    const sumAvgSpeed = formatAvgSpeed(sumKm, sumHours);
 
     if (summaryEl) {
       summaryEl.innerHTML = `
         <span><strong>${filtered.length}</strong> ${filtered.length === 1 ? 'Tour' : 'Touren'} in Auswahl</span>
         <span class="inline-meta">
           ${svgIcon('route', 'icon-sm')} <strong>${formatKm(sumKm)}</strong> &nbsp;&bull;&nbsp;
-          ${svgIcon('clock', 'icon-sm')} <strong>${formatDurationHM(sumHours)}</strong>
-          ${sumAvgSpeed ? ` &nbsp;&bull;&nbsp; ${svgIcon('gauge', 'icon-sm')} Ø <strong>${sumAvgSpeed}</strong>` : ''}
-          &nbsp;&bull;&nbsp; ${svgIcon('mountain', 'icon-sm')} <strong>${sumHm.toLocaleString('de-DE')} hm</strong>
+          ${svgIcon('clock', 'icon-sm')} <strong>${formatDurationHM(sumHours)}</strong> &nbsp;&bull;&nbsp;
+          ${svgIcon('mountain', 'icon-sm')} <strong>${sumHm.toLocaleString('de-DE')} hm</strong>
         </span>
       `;
     }
@@ -3006,7 +2987,7 @@
       return;
     }
 
-    // Gleiche Schriftgröße (0.8rem) und Inline-Formatierung wie in der Leiste "Tour in Auswahl"
+    // Gleiche Schriftgröße (0.8rem) und Inline-Formatierung wie in der Leiste "Tour in Auswahl" (ohne Ø km/h)
     tbody.innerHTML = filtered.map(t => {
       const bikeObj = appData.bikes[t.bike];
       const bName = bikeObj ? bikeObj.name : t.bike;
@@ -3033,12 +3014,10 @@
         }
       }
 
-      const avgSpeed = formatAvgSpeed(t.km, t.hours);
       const distPart = `${svgIcon('route', 'icon-sm')} <strong>+${t.km.toLocaleString('de-DE', {minimumFractionDigits:1})} km</strong>`;
       const hoursPart = (t.hours && t.hours > 0) ? `${svgIcon('clock', 'icon-sm')} <strong>${formatDurationHM(t.hours)}</strong>` : '';
-      const speedPart = avgSpeed ? `${svgIcon('gauge', 'icon-sm')} Ø <strong>${avgSpeed}</strong>` : '';
       const hmPart = t.hm ? `${svgIcon('mountain', 'icon-sm')} <strong>${Number(t.hm).toLocaleString('de-DE')} hm</strong>` : '';
-      const statsInline = [distPart, hoursPart, speedPart, hmPart].filter(Boolean).join(' &nbsp;&bull;&nbsp; ');
+      const statsInline = [distPart, hoursPart, hmPart].filter(Boolean).join(' &nbsp;&bull;&nbsp; ');
 
       return `
         <tr class="${editingTourId === t.id ? 'editing-row' : ''}">

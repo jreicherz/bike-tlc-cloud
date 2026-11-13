@@ -25,6 +25,7 @@
       --success: #047857;
       --warning: #b45309;
       --danger: #b91c1c;
+      --komoot: #679c26;
       --radius: 12px;
     }
 
@@ -255,6 +256,31 @@
       object-fit: cover;
       cursor: zoom-in;
     }
+
+    /* Komoot Cloud-Inbox & GPX Import Box */
+    .komoot-import-box {
+      background: linear-gradient(135deg, rgba(103, 156, 38, 0.2), rgba(35, 42, 50, 0.92));
+      border: 1px solid rgba(132, 204, 22, 0.45);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+    .btn-komoot {
+      background: var(--komoot);
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.15s;
+      white-space: nowrap;
+    }
+    .btn-komoot:hover { filter: brightness(1.08); }
 
     /* Touren Filter- & Sortierleiste */
     .filter-toolbar {
@@ -507,6 +533,7 @@
   <symbol id="i-arrow-up" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></symbol>
   <symbol id="i-arrow-down" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></symbol>
   <symbol id="i-maximize" viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></symbol>
+  <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></symbol>
 </svg>
 
 <header>
@@ -615,7 +642,7 @@
     </div>
   </section>
 
-  <!-- TAB 2: TOUREN & VERBRAUCH (INKL. FILTER, SUCHE & SORTIERUNG) -->
+  <!-- TAB 2: TOUREN, KOMOOT CLOUD-INBOX & VERBRAUCH -->
   <section id="tab-tours" class="hidden">
     <div class="grid-2">
       <div class="card" id="tour-form-card">
@@ -624,7 +651,38 @@
             <svg class="icon"><use href="#i-plus"/></svg> Neue Tour, Höhenmeter, Fahrzeit & Akku
           </div>
         </div>
+
+        <!-- KOMOOT DIREKT-SYNC AUSWAHL + GPX FALLBACK -->
+        <div class="komoot-import-box">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+            <div>
+              <div style="font-weight:700; font-size:0.9rem; display:flex; align-items:center; gap:6px; color:#d9f99d;">
+                <svg class="icon icon-sm"><use href="#i-compass"/></svg> Komoot Cloud-Sync & Direkt-Auswahl
+              </div>
+              <div id="komoot-sync-info" style="font-size:0.75rem; color:var(--text-muted); margin-top:1px;">
+                Wähle eine automatisch abgerufene Komoot-Fahrt oder lade lokal eine .gpx-Datei:
+              </div>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button type="button" class="btn btn-secondary" style="padding:6px 10px; font-size:0.78rem;" onclick="pullFromCloud(true)" title="Neueste Komoot-Touren aus Supabase abrufen">
+                <svg class="icon icon-sm"><use href="#i-refresh"/></svg> Sync
+              </button>
+              <input type="file" id="gpx-file-input" accept=".gpx,application/gpx+xml,text/xml" class="hidden" onchange="handleGpxImport(event)">
+              <button type="button" class="btn-komoot" onclick="document.getElementById('gpx-file-input').click()" title="Manuelle GPX-Datei vom Gerät wählen">
+                <svg class="icon icon-sm"><use href="#i-upload"/></svg> .GPX
+              </button>
+            </div>
+          </div>
+
+          <select id="komoot-inbox-select" onchange="applyKomootInboxTour(this.value)" style="background:var(--bg-card); font-size:0.86rem; margin-top:2px;">
+            <option value="">-- Aufgezeichnete Komoot-Tour auswählen --</option>
+          </select>
+        </div>
+
+        <div id="gpx-import-feedback" class="hidden" style="font-size:0.8rem; padding:8px 10px; border-radius:8px; background:rgba(16,185,129,0.18); border:1px solid rgba(16,185,129,0.4); color:#6ee7b7; margin-bottom:10px;"></div>
+
         <form onsubmit="saveTour(event)">
+          <input type="hidden" id="tour-komoot-id" value="">
           <label><svg class="icon icon-sm"><use href="#i-bike"/></svg> Fahrrad</label>
           <select id="tour-bike" onchange="previewTourEnergy()"></select>
 
@@ -680,7 +738,7 @@
             </div>
           </div>
 
-          <label>Strecke / Notiz (optional)</label>
+          <label>Strecke / Komoot-Tourenname</label>
           <input type="text" id="tour-note" placeholder="z. B. Trail-Runde, Weinbergs-Runde, Hometrails...">
           <div style="display:flex; gap:10px; margin-top:14px;">
             <button type="submit" id="tour-submit-btn" class="btn" style="flex:1;">
@@ -1360,6 +1418,216 @@
     return avg.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' km/h';
   }
 
+  // KOMOOT CLOUD-INBOX RENDERER & ÜBERNAHME IN DAS FORMULAR
+  function renderKomootInboxDropdown() {
+    const selectEl = document.getElementById('komoot-inbox-select');
+    const infoEl = document.getElementById('komoot-sync-info');
+    if (!selectEl) return;
+
+    const inbox = Array.isArray(appData.komootInbox) ? appData.komootInbox : [];
+    const lastSync = appData.komootLastSync || null;
+
+    if (infoEl) {
+      infoEl.textContent = lastSync
+        ? `Letzter Komoot-Cloud-Abruf: ${lastSync} (${inbox.length} Touren bereit)`
+        : 'Noch kein automatischer Komoot-Sync in der Cloud (GitHub Action starten oder .GPX wählen):';
+    }
+
+    if (inbox.length === 0) {
+      selectEl.innerHTML = `<option value="">-- Noch keine synchronisierten Komoot-Touren in der Cloud --</option>`;
+      return;
+    }
+
+    const importedIds = new Set(appData.tours.map(t => String(t.komootId || '')));
+
+    selectEl.innerHTML = `<option value="">-- Aufgezeichnete Komoot-Tour auswählen (${inbox.length} verfügbar) --</option>` +
+      inbox.map((kt, idx) => {
+        const already = importedIds.has(String(kt.komootId));
+        const totalMins = Math.max(1, Math.round((kt.durationSec || 0) / 60));
+        const h = Math.floor(totalMins / 60);
+        const m = totalMins % 60;
+        const prefix = already ? '✓ [Bereits eingetragen] ' : '';
+        return `<option value="${idx}">${prefix}${kt.date} | ${kt.name} (${Number(kt.km).toLocaleString('de-DE')} km, ${kt.hm} hm, ${h}h ${String(m).padStart(2,'0')}m)</option>`;
+      }).join('');
+  }
+
+  function applyKomootInboxTour(idxStr) {
+    if (idxStr === '' || idxStr === null) return;
+    const inbox = Array.isArray(appData.komootInbox) ? appData.komootInbox : [];
+    const kt = inbox[parseInt(idxStr, 10)];
+    if (!kt) return;
+
+    document.getElementById('tour-komoot-id').value = String(kt.komootId || '');
+    if (kt.date) document.getElementById('tour-date').value = kt.date;
+    document.getElementById('tour-km').value = kt.km || '';
+    document.getElementById('tour-hm').value = kt.hm !== undefined ? kt.hm : '';
+
+    const totalMins = Math.max(1, Math.round((kt.durationSec || 0) / 60));
+    const h = Math.floor(totalMins / 60);
+    const m = totalMins % 60;
+    document.getElementById('tour-hours-h').value = h;
+    document.getElementById('tour-hours-m').value = m;
+    document.getElementById('tour-note').value = kt.name || 'Komoot Tour';
+
+    previewTourEnergy();
+
+    const fb = document.getElementById('gpx-import-feedback');
+    fb.innerHTML = `${svgIcon('check', 'icon-sm')} <strong>Komoot-Tour übernommen:</strong> "${kt.name}" (${Number(kt.km).toLocaleString('de-DE')} km &bull; ${kt.hm} hm &bull; ${h}h ${String(m).padStart(2,'0')}m). Nur noch Fahrrad prüfen, Rest-Akku eingeben & speichern!`;
+    fb.classList.remove('hidden');
+
+    document.getElementById('tour-battery').focus();
+  }
+
+  // KOMOOT GPX-DATEI PARSER (Manueller Fallback)
+  function haversineDistanceKm(lat1, lon1, lat2, lon2) {
+    const R = 6371.0088;
+    const toRad = (deg) => (deg * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  function handleGpxImport(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const xmlText = e.target.result;
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(xmlText, 'text/xml');
+
+        const trkNameNode = xml.querySelector('trk > name') || xml.querySelector('rte > name') || xml.querySelector('metadata > name');
+        const tourName = trkNameNode ? trkNameNode.textContent.trim() : file.name.replace(/\.gpx$/i, '');
+
+        let pts = Array.from(xml.querySelectorAll('trkpt'));
+        if (pts.length === 0) pts = Array.from(xml.querySelectorAll('rtept'));
+
+        if (pts.length < 2) {
+          alert('Die GPX-Datei enthält keine auswertbaren Streckenpunkte.');
+          return;
+        }
+
+        let totalDistKm = 0;
+        let totalAscentM = 0;
+        let lastAnchorEle = null;
+        let movingSeconds = 0;
+        let firstTimestamp = null;
+        let lastTimestamp = null;
+
+        let prevLat = null;
+        let prevLon = null;
+        let prevTime = null;
+
+        for (let i = 0; i < pts.length; i++) {
+          const pt = pts[i];
+          const lat = parseFloat(pt.getAttribute('lat'));
+          const lon = parseFloat(pt.getAttribute('lon'));
+          if (isNaN(lat) || isNaN(lon)) continue;
+
+          let segDistKm = 0;
+          if (prevLat !== null && prevLon !== null) {
+            segDistKm = haversineDistanceKm(prevLat, prevLon, lat, lon);
+            totalDistKm += segDistKm;
+          }
+          prevLat = lat;
+          prevLon = lon;
+
+          const eleNode = pt.querySelector('ele');
+          if (eleNode) {
+            const ele = parseFloat(eleNode.textContent);
+            if (!isNaN(ele)) {
+              if (lastAnchorEle === null) {
+                lastAnchorEle = ele;
+              } else {
+                const diff = ele - lastAnchorEle;
+                if (diff >= 3.0) {
+                  totalAscentM += diff;
+                  lastAnchorEle = ele;
+                } else if (diff <= -3.0) {
+                  lastAnchorEle = ele;
+                }
+              }
+            }
+          }
+
+          const timeNode = pt.querySelector('time');
+          if (timeNode) {
+            const tMs = Date.parse(timeNode.textContent.trim());
+            if (!isNaN(tMs)) {
+              if (firstTimestamp === null) firstTimestamp = tMs;
+              lastTimestamp = tMs;
+
+              if (prevTime !== null) {
+                const dtSec = (tMs - prevTime) / 1000;
+                const segSpeedKmh = dtSec > 0 ? (segDistKm / (dtSec / 3600)) : 0;
+                if (dtSec > 0 && dtSec <= 180 && (segSpeedKmh >= 1.2 || dtSec <= 15)) {
+                  movingSeconds += dtSec;
+                }
+              }
+              prevTime = tMs;
+            }
+          }
+        }
+
+        if (!firstTimestamp) {
+          const metaTimeNode = xml.querySelector('metadata > time');
+          if (metaTimeNode) {
+            const parsedMeta = Date.parse(metaTimeNode.textContent.trim());
+            if (!isNaN(parsedMeta)) firstTimestamp = parsedMeta;
+          }
+        }
+
+        if (firstTimestamp) {
+          const dStr = new Date(firstTimestamp).toISOString().split('T')[0];
+          document.getElementById('tour-date').value = dStr;
+        }
+
+        const roundedKm = Math.max(0.1, Number(totalDistKm.toFixed(1)));
+        const roundedHm = Math.round(totalAscentM);
+        document.getElementById('tour-km').value = roundedKm;
+        document.getElementById('tour-hm').value = roundedHm;
+
+        let finalSeconds = movingSeconds;
+        if (finalSeconds <= 0 && firstTimestamp && lastTimestamp && lastTimestamp > firstTimestamp) {
+          finalSeconds = (lastTimestamp - firstTimestamp) / 1000;
+        }
+
+        let durText = 'Keine Zeitstempel (Geplante Route)';
+        if (finalSeconds > 0) {
+          const totalMins = Math.max(1, Math.round(finalSeconds / 60));
+          const h = Math.floor(totalMins / 60);
+          const m = totalMins % 60;
+          document.getElementById('tour-hours-h').value = h;
+          document.getElementById('tour-hours-m').value = m;
+          durText = `${h}h ${String(m).padStart(2, '0')}m Fahrzeit`;
+        }
+
+        if (tourName) {
+          document.getElementById('tour-note').value = tourName;
+        }
+
+        previewTourEnergy();
+
+        const fb = document.getElementById('gpx-import-feedback');
+        fb.innerHTML = `${svgIcon('check', 'icon-sm')} <strong>Komoot-GPX geladen:</strong> "${tourName}" (${roundedKm.toLocaleString('de-DE')} km &bull; ${roundedHm} hm &bull; ${durText}). Jetzt nur noch Rest-Akku ergänzen & speichern!`;
+        fb.classList.remove('hidden');
+
+        document.getElementById('tour-battery').focus();
+      } catch (err) {
+        alert('Fehler beim Lesen der GPX-Datei: ' + err.message);
+      } finally {
+        event.target.value = '';
+      }
+    };
+    reader.readAsText(file);
+  }
+
   const defaultSuspensionPropain = {
     forkModel: 'RockShox Lyrik Ultimate (160 mm)',
     forkTravelMm: 160,
@@ -1414,6 +1682,8 @@
 
   const defaultData = {
     appIcon: null,
+    komootInbox: [],
+    komootLastSync: null,
     bikes: {
       propain: {
         id: 'propain',
@@ -1498,6 +1768,7 @@
     if (!data.bikes || Object.keys(data.bikes).length === 0) {
       data.bikes = JSON.parse(JSON.stringify(defaultData.bikes));
     }
+    if (!Array.isArray(data.komootInbox)) data.komootInbox = [];
     if (data.bikes.propain && ['#ef4444', '#b91c1c'].includes(data.bikes.propain.color)) {
       data.bikes.propain.color = '#991b1b';
     }
@@ -1657,7 +1928,6 @@
       </button>
     `;
 
-    // Touren-Formular Fahrrad-Auswahl
     const tourSelect = document.getElementById('tour-bike');
     const prevVal = tourSelect.value;
     tourSelect.innerHTML = bikesList.map(b => {
@@ -1671,7 +1941,6 @@
       tourSelect.value = activeBike;
     }
 
-    // Touren-Tabelle Filter-Dropdown dynamisch befüllen
     const filterSelect = document.getElementById('tour-filter-bike');
     if (filterSelect) {
       const prevFilter = filterSelect.value || 'all';
@@ -1771,7 +2040,6 @@
     });
   }
 
-  // Dashboard-Kacheln mit kompaktem Foto rechts neben den Kilometern rendern
   function renderDashboardKpis() {
     const grid = document.getElementById('dashboard-kpi-grid');
     const bikesList = getOrderedBikes();
@@ -1942,6 +2210,7 @@
     document.documentElement.style.setProperty('--accent', currentAccent);
 
     renderBikeSwitcherAndSelect();
+    renderKomootInboxDropdown();
 
     document.querySelectorAll('.active-bike-name').forEach(el => {
       el.textContent = appData.bikes[activeBike].name;
@@ -2306,12 +2575,16 @@
     const hoursM = document.getElementById('tour-hours-m').value;
     const startRaw = document.getElementById('tour-battery-start').value;
     const batteryRaw = document.getElementById('tour-battery').value;
+    const komootId = document.getElementById('tour-komoot-id').value || null;
 
     const hm = hmRaw !== '' ? Math.max(0, parseInt(hmRaw, 10)) : 0;
     const hours = hmToDecimalHours(hoursH, hoursM);
     const batteryStart = startRaw !== '' ? Math.min(100, Math.max(1, parseInt(startRaw, 10))) : 100;
     const batteryLeft = batteryRaw !== '' ? Math.min(100, Math.max(0, parseInt(batteryRaw, 10))) : null;
     const note = document.getElementById('tour-note').value.trim() || 'Ausfahrt';
+
+    const fb = document.getElementById('gpx-import-feedback');
+    if (fb) fb.classList.add('hidden');
 
     if (editingTourId !== null) {
       const idx = appData.tours.findIndex(t => t.id === editingTourId);
@@ -2332,6 +2605,7 @@
     } else {
       appData.tours.unshift({
         id: Date.now(),
+        komootId,
         bike,
         date,
         km,
@@ -2341,6 +2615,7 @@
         batteryLeft,
         note
       });
+      document.getElementById('tour-komoot-id').value = '';
       document.getElementById('tour-km').value = '';
       document.getElementById('tour-hm').value = '';
       document.getElementById('tour-hours-h').value = '';
@@ -2348,6 +2623,8 @@
       document.getElementById('tour-battery-start').value = '100';
       document.getElementById('tour-battery').value = '';
       document.getElementById('tour-note').value = '';
+      const inboxSel = document.getElementById('komoot-inbox-select');
+      if (inboxSel) inboxSel.value = '';
       previewTourEnergy();
     }
 
@@ -2359,6 +2636,7 @@
     if (!t) return;
 
     editingTourId = id;
+    document.getElementById('tour-komoot-id').value = t.komootId || '';
     document.getElementById('tour-bike').value = t.bike;
     document.getElementById('tour-date').value = t.date;
     document.getElementById('tour-km').value = t.km;
@@ -2386,6 +2664,7 @@
     const kmInput = document.getElementById('tour-km');
     if (!kmInput) return;
 
+    document.getElementById('tour-komoot-id').value = '';
     document.getElementById('tour-bike').value = activeBike;
     document.getElementById('tour-date').value = new Date().toISOString().split('T')[0];
     kmInput.value = '';
@@ -2395,6 +2674,9 @@
     document.getElementById('tour-battery-start').value = '100';
     document.getElementById('tour-battery').value = '';
     document.getElementById('tour-note').value = '';
+
+    const fb = document.getElementById('gpx-import-feedback');
+    if (fb) fb.classList.add('hidden');
 
     document.getElementById('tour-form-title').innerHTML = `${svgIcon('plus')} Neue Tour, Höhenmeter, Fahrzeit & Akku`;
     document.getElementById('tour-submit-btn').innerHTML = `${svgIcon('save')} Tour speichern & Zeit/KM addieren`;
@@ -2425,14 +2707,12 @@
       return;
     }
 
-    // 1. Filtern nach Fahrrad & Suchbegriff
     let filtered = appData.tours.filter(t => {
       if (filterBike !== 'all' && t.bike !== filterBike) return false;
       if (searchQuery && !(t.note || '').toLowerCase().includes(searchQuery) && !(t.date || '').includes(searchQuery)) return false;
       return true;
     });
 
-    // 2. Sortieren nach gewähltem Kriterium
     filtered.sort((a, b) => {
       if (sortBy === 'date_desc') return String(b.date).localeCompare(String(a.date)) || (b.id - a.id);
       if (sortBy === 'date_asc') return String(a.date).localeCompare(String(b.date)) || (a.id - b.id);
@@ -2448,7 +2728,6 @@
       return 0;
     });
 
-    // 3. Zusammenfassung der aktuellen Auswahl berechnen
     const sumKm = filtered.reduce((s, t) => s + parseFloat(t.km || 0), 0);
     const sumHm = filtered.reduce((s, t) => s + parseInt(t.hm || 0, 10), 0);
     const sumHours = filtered.reduce((s, t) => s + parseFloat(t.hours || 0), 0);
@@ -3366,14 +3645,14 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
         renderAll();
         setSyncStatus(true, 'Cloud verbunden & synchron');
-        if (showMessage) statusMsg.textContent = 'Daten erfolgreich aus der Supabase-Cloud geladen.';
+        if (showMessage && statusMsg) statusMsg.textContent = 'Daten & Komoot-Inbox erfolgreich aus der Supabase-Cloud geladen.';
       } else {
         await pushToCloud(false);
         setSyncStatus(true, 'Initialer Stand in Cloud gespeichert');
       }
     } catch (err) {
       setSyncStatus(false, 'Cloud-Fehler (Prüfe URL/Key)');
-      if (showMessage) statusMsg.textContent = 'Fehler: ' + err.message;
+      if (showMessage && statusMsg) statusMsg.textContent = 'Fehler: ' + err.message;
     }
   }
 
@@ -3381,16 +3660,30 @@
     if (!supabaseClient) return;
     const statusMsg = document.getElementById('sb-status-msg');
     try {
+      // Bevor wir überschreiben, sichern wir ggf. eine neuere komootInbox aus der Cloud
+      const { data: existing } = await supabaseClient
+        .from('bike_app_state')
+        .select('payload')
+        .eq('id', 1)
+        .single();
+
+      if (existing && existing.payload) {
+        if (Array.isArray(existing.payload.komootInbox) && existing.payload.komootInbox.length > 0) {
+          appData.komootInbox = existing.payload.komootInbox;
+          appData.komootLastSync = existing.payload.komootLastSync || appData.komootLastSync;
+        }
+      }
+
       const { error } = await supabaseClient
         .from('bike_app_state')
         .upsert({ id: 1, payload: appData, updated_at: new Date().toISOString() });
 
       if (error) throw error;
       setSyncStatus(true, 'Cloud synchronisiert');
-      if (showMessage) statusMsg.textContent = 'Aktueller Stand erfolgreich in die Cloud übertragen.';
+      if (showMessage && statusMsg) statusMsg.textContent = 'Aktueller Stand erfolgreich in die Cloud übertragen.';
     } catch (err) {
       setSyncStatus(false, 'Sync fehlgeschlagen');
-      if (showMessage) statusMsg.textContent = 'Fehler beim Senden: ' + err.message;
+      if (showMessage && statusMsg) statusMsg.textContent = 'Fehler beim Senden: ' + err.message;
     }
   }
 

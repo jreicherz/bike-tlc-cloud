@@ -256,6 +256,42 @@
       cursor: zoom-in;
     }
 
+    /* Touren Filter- & Sortierleiste */
+    .filter-toolbar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .filter-toolbar label {
+      margin-top: 0;
+      font-size: 0.75rem;
+    }
+    .filter-toolbar select, .filter-toolbar input {
+      margin-top: 4px;
+      padding: 8px 10px;
+      font-size: 0.85rem;
+      background: var(--bg-card);
+    }
+    .tours-summary-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(35, 42, 50, 0.65);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
     /* Lightbox (Vollbild-Foto-Vorschau) */
     .lightbox-overlay {
       position: fixed;
@@ -579,7 +615,7 @@
     </div>
   </section>
 
-  <!-- TAB 2: TOUREN & VERBRAUCH -->
+  <!-- TAB 2: TOUREN & VERBRAUCH (INKL. FILTER, SUCHE & SORTIERUNG) -->
   <section id="tab-tours" class="hidden">
     <div class="grid-2">
       <div class="card" id="tour-form-card">
@@ -669,6 +705,36 @@
         <div class="card-header">
           <div class="card-title"><svg class="icon"><use href="#i-list"/></svg> Eingetragene Touren, Ø km/h, HM & Effizienz</div>
         </div>
+
+        <!-- FILTER-, SUCH- & SORTIERLEISTE -->
+        <div class="filter-toolbar">
+          <div>
+            <label><svg class="icon icon-sm"><use href="#i-bike"/></svg> Nach Fahrrad filtern</label>
+            <select id="tour-filter-bike" onchange="renderTours()">
+              <option value="all">Alle Fahrräder anzeigen</option>
+            </select>
+          </div>
+          <div>
+            <label><svg class="icon icon-sm"><use href="#i-sliders"/></svg> Sortieren nach</label>
+            <select id="tour-sort-by" onchange="renderTours()">
+              <option value="date_desc">Datum (Neueste zuerst)</option>
+              <option value="date_asc">Datum (Älteste zuerst)</option>
+              <option value="km_desc">Distanz (Längste zuerst)</option>
+              <option value="km_asc">Distanz (Kürzeste zuerst)</option>
+              <option value="hm_desc">Höhenmeter (Meiste zuerst)</option>
+              <option value="hours_desc">Fahrzeit (Längste zuerst)</option>
+              <option value="speed_desc">Ø Tempo (Schnellste zuerst)</option>
+            </select>
+          </div>
+          <div>
+            <label><svg class="icon icon-sm"><use href="#i-search"/></svg> Strecke / Notiz suchen</label>
+            <input type="text" id="tour-search-note" placeholder="Suchbegriff..." oninput="renderTours()">
+          </div>
+        </div>
+
+        <!-- ZUSAMMENFASSUNG DER GEFILTERTEN TOUREN -->
+        <div id="tours-filter-summary" class="tours-summary-bar"></div>
+
         <div style="overflow-x:auto;">
           <table>
             <thead>
@@ -1591,6 +1657,7 @@
       </button>
     `;
 
+    // Touren-Formular Fahrrad-Auswahl
     const tourSelect = document.getElementById('tour-bike');
     const prevVal = tourSelect.value;
     tourSelect.innerHTML = bikesList.map(b => {
@@ -1602,6 +1669,22 @@
       tourSelect.value = prevVal;
     } else {
       tourSelect.value = activeBike;
+    }
+
+    // Touren-Tabelle Filter-Dropdown dynamisch befüllen
+    const filterSelect = document.getElementById('tour-filter-bike');
+    if (filterSelect) {
+      const prevFilter = filterSelect.value || 'all';
+      filterSelect.innerHTML = `<option value="all">Alle Fahrräder (${appData.tours.length})</option>` +
+        bikesList.map(b => {
+          const count = appData.tours.filter(t => t.bike === b.id).length;
+          return `<option value="${b.id}">${b.name} (${count})</option>`;
+        }).join('');
+      if (prevFilter === 'all' || appData.bikes[prevFilter]) {
+        filterSelect.value = prevFilter;
+      } else {
+        filterSelect.value = 'all';
+      }
     }
   }
 
@@ -2212,7 +2295,7 @@
     previewEl.style.color = '#10b981';
   }
 
-  // 1. TOUREN: Hinzufügen, Bearbeiten & Löschen
+  // 1. TOUREN: Hinzufügen, Bearbeiten, Filtern, Sortieren & Löschen
   function saveTour(e) {
     e.preventDefault();
     const bike = document.getElementById('tour-bike').value;
@@ -2331,12 +2414,64 @@
 
   function renderTours() {
     const tbody = document.getElementById('tours-table-body');
+    const summaryEl = document.getElementById('tours-filter-summary');
+    const filterBike = (document.getElementById('tour-filter-bike')?.value) || 'all';
+    const sortBy = (document.getElementById('tour-sort-by')?.value) || 'date_desc';
+    const searchQuery = ((document.getElementById('tour-search-note')?.value) || '').trim().toLowerCase();
+
     if (appData.tours.length === 0) {
+      if (summaryEl) summaryEl.innerHTML = `<span>0 Touren gespeichert</span><span>Basis-Stände aktiv</span>`;
       tbody.innerHTML = `<tr><td colspan="7" style="color:var(--text-muted); text-align:center;">Noch keine Einzel-Touren eingetragen. Die Basis-Stände sind aktiv.</td></tr>`;
       return;
     }
 
-    tbody.innerHTML = appData.tours.map(t => {
+    // 1. Filtern nach Fahrrad & Suchbegriff
+    let filtered = appData.tours.filter(t => {
+      if (filterBike !== 'all' && t.bike !== filterBike) return false;
+      if (searchQuery && !(t.note || '').toLowerCase().includes(searchQuery) && !(t.date || '').includes(searchQuery)) return false;
+      return true;
+    });
+
+    // 2. Sortieren nach gewähltem Kriterium
+    filtered.sort((a, b) => {
+      if (sortBy === 'date_desc') return String(b.date).localeCompare(String(a.date)) || (b.id - a.id);
+      if (sortBy === 'date_asc') return String(a.date).localeCompare(String(b.date)) || (a.id - b.id);
+      if (sortBy === 'km_desc') return (parseFloat(b.km) || 0) - (parseFloat(a.km) || 0);
+      if (sortBy === 'km_asc') return (parseFloat(a.km) || 0) - (parseFloat(b.km) || 0);
+      if (sortBy === 'hm_desc') return (parseInt(b.hm || 0, 10)) - (parseInt(a.hm || 0, 10));
+      if (sortBy === 'hours_desc') return (parseFloat(b.hours) || 0) - (parseFloat(a.hours) || 0);
+      if (sortBy === 'speed_desc') {
+        const sA = (parseFloat(a.hours) > 0) ? (parseFloat(a.km) / parseFloat(a.hours)) : 0;
+        const sB = (parseFloat(b.hours) > 0) ? (parseFloat(b.km) / parseFloat(b.hours)) : 0;
+        return sB - sA;
+      }
+      return 0;
+    });
+
+    // 3. Zusammenfassung der aktuellen Auswahl berechnen
+    const sumKm = filtered.reduce((s, t) => s + parseFloat(t.km || 0), 0);
+    const sumHm = filtered.reduce((s, t) => s + parseInt(t.hm || 0, 10), 0);
+    const sumHours = filtered.reduce((s, t) => s + parseFloat(t.hours || 0), 0);
+    const sumAvgSpeed = formatAvgSpeed(sumKm, sumHours);
+
+    if (summaryEl) {
+      summaryEl.innerHTML = `
+        <span><strong>${filtered.length}</strong> ${filtered.length === 1 ? 'Tour' : 'Touren'} in Auswahl</span>
+        <span class="inline-meta">
+          ${svgIcon('route', 'icon-sm')} <strong>${formatKm(sumKm)}</strong> &nbsp;&bull;&nbsp;
+          ${svgIcon('clock', 'icon-sm')} <strong>${formatDurationHM(sumHours)}</strong>
+          ${sumAvgSpeed ? ` &nbsp;&bull;&nbsp; ${svgIcon('gauge', 'icon-sm')} Ø <strong>${sumAvgSpeed}</strong>` : ''}
+          &nbsp;&bull;&nbsp; ${svgIcon('mountain', 'icon-sm')} <strong>${sumHm.toLocaleString('de-DE')} hm</strong>
+        </span>
+      `;
+    }
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="color:var(--text-muted); text-align:center;">Keine Touren für diesen Filter gefunden.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(t => {
       const bikeObj = appData.bikes[t.bike];
       const bName = bikeObj ? bikeObj.name : t.bike;
       const bColor = bikeObj ? bikeObj.color : '#64748b';

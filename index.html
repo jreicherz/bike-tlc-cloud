@@ -6,7 +6,7 @@
   <title>Bike TLC Pro</title>
   <meta name="theme-color" content="#36404c">
   <link rel="manifest" href="manifest.json">
-  <link id="dynamic-favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2336404c'/><text y='.9em' x='12' font-size='72'>🚵</text></svg>">
+  <link id="dynamic-favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2336404c'/><g fill='none' stroke='%23ef4444' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'><circle cx='26' cy='68' r='14'/><circle cx='74' cy='68' r='14'/><path d='M26 68l16-28h22l-12 28H26z' stroke='%23f8fafc'/><path d='M58 28h10l6 40' stroke='%23f8fafc'/><path d='M36 40l-4-10h10' stroke='%23f8fafc'/></g></svg>">
   <link id="dynamic-apple-icon" rel="apple-touch-icon" href="">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -31,6 +31,22 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-main); color: var(--text-main); line-height: 1.5; padding-bottom: 80px; }
 
+    /* SVG Icon System */
+    .icon {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      flex-shrink: 0;
+      vertical-align: middle;
+    }
+    .icon-sm { width: 15px; height: 15px; }
+    .icon-lg { width: 22px; height: 22px; }
+    .inline-meta { display: inline-flex; align-items: center; gap: 5px; }
+
     /* Header */
     header {
       background-color: var(--bg-card);
@@ -47,16 +63,17 @@
     }
     .brand { display: flex; align-items: center; gap: 12px; }
     .brand img, .brand .default-icon {
-      width: 40px; height: 40px; border-radius: 10px; object-fit: cover;
+      width: 42px; height: 42px; border-radius: 10px; object-fit: cover;
       background: var(--bg-input); display: flex; align-items: center; justify-content: center;
-      font-size: 22px; border: 1px solid var(--border);
+      color: var(--accent); border: 1px solid var(--border);
     }
     .brand h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.3px; }
     .sync-badge {
       font-size: 0.78rem; padding: 4px 10px; border-radius: 20px;
       background: var(--bg-input); color: var(--text-muted); border: 1px solid var(--border);
-      display: flex; align-items: center; gap: 6px; cursor: pointer;
+      display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;
     }
+    .sync-badge:hover { border-color: var(--text-muted); color: var(--text-main); }
     .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warning); }
     .sync-dot.online { background: var(--success); }
 
@@ -80,6 +97,7 @@
       background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border);
       padding: 10px 16px; border-radius: var(--radius); cursor: pointer; font-weight: 600;
       font-size: 0.9rem; white-space: nowrap; transition: 0.2s;
+      display: inline-flex; align-items: center; gap: 8px;
     }
     .nav-tab:hover { background: var(--bg-card-hover); color: var(--text-main); }
     .nav-tab.active {
@@ -100,7 +118,7 @@
       margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border);
       flex-wrap: wrap; gap: 8px;
     }
-    .card-title { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .card-title { font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
 
     /* KPI Boxen */
     .kpi-value { font-size: 1.85rem; font-weight: 800; margin-top: 4px; }
@@ -134,16 +152,30 @@
       width: 100%; padding: 10px 12px; background: var(--bg-input); border: 1px solid var(--border);
       color: var(--text-main); border-radius: 8px; font-size: 0.92rem; margin-top: 4px;
     }
-    label { font-size: 0.82rem; color: var(--text-muted); font-weight: 600; display: block; margin-top: 10px; }
+    label { font-size: 0.82rem; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 6px; margin-top: 10px; }
     .btn {
       background: var(--accent); color: #fff; border: none; padding: 10px 16px;
       border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem;
-      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      transition: opacity 0.15s ease, transform 0.1s ease;
     }
+    .btn:hover { opacity: 0.92; }
+    .btn:active { transform: scale(0.98); }
     .btn-secondary { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); }
-    .btn-edit { background: rgba(59, 130, 246, 0.22); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); padding: 5px 10px; font-size: 0.8rem; }
-    .btn-danger { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.4); padding: 5px 10px; font-size: 0.8rem; }
-    .btn-success { background: rgba(16,185,129,0.22); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.4); padding: 5px 10px; font-size: 0.8rem; }
+    
+    /* Professionelle Action-Buttons (Bearbeiten, Bestätigen, Löschen) */
+    .btn-icon {
+      width: 32px; height: 32px; padding: 0; border-radius: 7px;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .btn-edit { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); padding: 6px 10px; font-size: 0.8rem; }
+    .btn-danger { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); padding: 6px 10px; font-size: 0.8rem; }
+    .btn-success { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); padding: 6px 10px; font-size: 0.8rem; }
+
+    /* Suchfeld mit integriertem Lupen-Icon */
+    .search-wrapper { position: relative; margin-bottom: 10px; }
+    .search-wrapper .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-35%); color: var(--text-muted); pointer-events: none; }
+    .search-wrapper input { padding-left: 38px; }
 
     /* Tabellen & Listen */
     table { width: 100%; border-collapse: collapse; margin-top: 8px; }
@@ -152,7 +184,8 @@
     tr.editing-row { background: rgba(59, 130, 246, 0.16); }
     .editing-box { border-color: #60a5fa !important; background: rgba(59, 130, 246, 0.12) !important; }
     .badge {
-      padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; display: inline-block;
+      padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;
+      display: inline-flex; align-items: center; gap: 5px;
     }
     .badge-nm { background: rgba(59, 130, 246, 0.25); color: #bfdbfe; border: 1px solid rgba(59, 130, 246, 0.45); font-size: 0.82rem; }
     .badge-due { background: rgba(245, 158, 11, 0.25); color: #fde68a; }
@@ -187,9 +220,45 @@
 </head>
 <body>
 
+<!-- ZENTRALE SVG-SYMBOL-BIBLIOTHEK -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none;">
+  <symbol id="i-bike" viewBox="0 0 24 24"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h2"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></symbol>
+  <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></symbol>
+  <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+  <symbol id="i-nut" viewBox="0 0 24 24"><path d="M12 2l9 5v10l-9 5-9-5V7l9-5z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+  <symbol id="i-battery" viewBox="0 0 24 24"><rect x="1" y="6" width="18" height="12" rx="2" ry="2"/><line x1="23" y1="13" x2="23" y2="11"/></symbol>
+  <symbol id="i-mountain" viewBox="0 0 24 24"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+  <symbol id="i-gauge" viewBox="0 0 24 24"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></symbol>
+  <symbol id="i-ruler" viewBox="0 0 24 24"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></symbol>
+  <symbol id="i-disc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></symbol>
+</svg>
+
 <header>
   <div class="brand">
-    <div id="app-icon-container" class="default-icon">🚵</div>
+    <div id="app-icon-container" class="default-icon">
+      <svg class="icon icon-lg"><use href="#i-bike"/></svg>
+    </div>
     <div>
       <h1>Bike TLC Pro</h1>
       <div class="sync-badge" onclick="switchTab('settings')">
@@ -206,13 +275,27 @@
 </header>
 
 <nav>
-  <button class="nav-tab active" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Übersicht & Grafik</button>
-  <button class="nav-tab" data-tab="tours" onclick="switchTab('tours')">🗺️ Touren & Verbrauch</button>
-  <button class="nav-tab" data-tab="suspension" onclick="switchTab('suspension')">🎛️ Fahrwerk-Setup</button>
-  <button class="nav-tab" data-tab="maintenance" onclick="switchTab('maintenance')">🔧 Wartungen & 50h/200h</button>
-  <button class="nav-tab" data-tab="torques" onclick="switchTab('torques')">🔩 Drehmomente (Nm)</button>
-  <button class="nav-tab" data-tab="specs" onclick="switchTab('specs')">⚙️ Spezifikationen & Fotos</button>
-  <button class="nav-tab" data-tab="settings" onclick="switchTab('settings')">☁️ Cloud & App-Icon</button>
+  <button class="nav-tab active" data-tab="dashboard" onclick="switchTab('dashboard')">
+    <svg class="icon"><use href="#i-chart"/></svg> Übersicht & Grafik
+  </button>
+  <button class="nav-tab" data-tab="tours" onclick="switchTab('tours')">
+    <svg class="icon"><use href="#i-route"/></svg> Touren & Verbrauch
+  </button>
+  <button class="nav-tab" data-tab="suspension" onclick="switchTab('suspension')">
+    <svg class="icon"><use href="#i-sliders"/></svg> Fahrwerk-Setup
+  </button>
+  <button class="nav-tab" data-tab="maintenance" onclick="switchTab('maintenance')">
+    <svg class="icon"><use href="#i-wrench"/></svg> Wartungen & 50h/200h
+  </button>
+  <button class="nav-tab" data-tab="torques" onclick="switchTab('torques')">
+    <svg class="icon"><use href="#i-nut"/></svg> Drehmomente (Nm)
+  </button>
+  <button class="nav-tab" data-tab="specs" onclick="switchTab('specs')">
+    <svg class="icon"><use href="#i-layers"/></svg> Spezifikationen & Fotos
+  </button>
+  <button class="nav-tab" data-tab="settings" onclick="switchTab('settings')">
+    <svg class="icon"><use href="#i-cloud"/></svg> Cloud & App-Icon
+  </button>
 </nav>
 
 <main>
@@ -247,7 +330,7 @@
     <div class="grid-2">
       <div class="card">
         <div class="card-header">
-          <div class="card-title">📈 Kilometer-Vergleich & Gesamtstand</div>
+          <div class="card-title"><svg class="icon"><use href="#i-chart"/></svg> Kilometer-Vergleich & Gesamtstand</div>
         </div>
         <div class="chart-container">
           <canvas id="kmBarChart"></canvas>
@@ -256,7 +339,7 @@
 
       <div class="card">
         <div class="card-header">
-          <div class="card-title">⏳ Fahrwerks-Timer & Offene Wartungen (<span class="active-bike-name"></span>)</div>
+          <div class="card-title"><svg class="icon"><use href="#i-clock"/></svg> Fahrwerks-Timer & Offene Wartungen (<span class="active-bike-name"></span>)</div>
           <button class="btn btn-secondary" onclick="switchTab('maintenance')">Details</button>
         </div>
         <div id="dashboard-service-bars" style="margin-bottom: 14px;"></div>
@@ -265,15 +348,17 @@
     </div>
   </section>
 
-  <!-- TAB 2: TOUREN & VERBRAUCH (INKL. BEARBEITEN) -->
+  <!-- TAB 2: TOUREN & VERBRAUCH -->
   <section id="tab-tours" class="hidden">
     <div class="grid-2">
       <div class="card" id="tour-form-card">
         <div class="card-header">
-          <div class="card-title" id="tour-form-title">➕ Neue Tour, Höhenmeter, Fahrzeit & Akku</div>
+          <div class="card-title" id="tour-form-title">
+            <svg class="icon"><use href="#i-plus"/></svg> Neue Tour, Höhenmeter, Fahrzeit & Akku
+          </div>
         </div>
         <form onsubmit="saveTour(event)">
-          <label>Fahrrad</label>
+          <label><svg class="icon icon-sm"><use href="#i-bike"/></svg> Fahrrad</label>
           <select id="tour-bike" onchange="previewTourEnergy()">
             <option value="propain">Propain Sresh SL (580 Wh Akku)</option>
             <option value="canyon">Canyon Grizl:ONfly Daily (400 Wh Akku)</option>
@@ -281,33 +366,33 @@
 
           <div class="grid-2" style="gap:10px; margin-top:4px;">
             <div>
-              <label>Datum</label>
+              <label><svg class="icon icon-sm"><use href="#i-calendar"/></svg> Datum</label>
               <input type="date" id="tour-date" required>
             </div>
             <div>
-              <label>Gefahrene Distanz (km)</label>
+              <label><svg class="icon icon-sm"><use href="#i-route"/></svg> Gefahrene Distanz (km)</label>
               <input type="number" id="tour-km" step="0.1" min="0.1" placeholder="z. B. 42.5" oninput="previewTourEnergy()" required>
             </div>
           </div>
 
           <div class="grid-2" style="gap:10px; margin-top:4px;">
             <div>
-              <label>⛰️ Höhenmeter (hm)</label>
+              <label><svg class="icon icon-sm"><use href="#i-mountain"/></svg> Höhenmeter (hm)</label>
               <input type="number" id="tour-hm" step="1" min="0" placeholder="z. B. 950">
             </div>
             <div>
-              <label>⏱️ Reine Fahrzeit (Stunden)</label>
+              <label><svg class="icon icon-sm"><use href="#i-clock"/></svg> Reine Fahrzeit (Stunden)</label>
               <input type="number" id="tour-hours" step="0.1" min="0" placeholder="z. B. 2.5 (für 50h/200h Timer)">
             </div>
           </div>
 
           <div class="grid-2" style="gap:10px; margin-top:4px;">
             <div>
-              <label>⚡ Start-Akku (%)</label>
+              <label><svg class="icon icon-sm"><use href="#i-zap"/></svg> Start-Akku (%)</label>
               <input type="number" id="tour-battery-start" step="1" min="1" max="100" value="100" oninput="previewTourEnergy()">
             </div>
             <div>
-              <label>🔋 Rest-Akku nach Tour (%)</label>
+              <label><svg class="icon icon-sm"><use href="#i-battery"/></svg> Rest-Akku nach Tour (%)</label>
               <input type="number" id="tour-battery" step="1" min="0" max="100" placeholder="z. B. 35" oninput="previewTourEnergy()">
             </div>
           </div>
@@ -325,8 +410,12 @@
           <label>Strecke / Notiz (optional)</label>
           <input type="text" id="tour-note" placeholder="z. B. Trail-Runde, Weinbergs-Runde, Hometrails...">
           <div style="display:flex; gap:10px; margin-top:14px;">
-            <button type="submit" id="tour-submit-btn" class="btn" style="flex:1;">Tour speichern & Stunden/KM addieren</button>
-            <button type="button" id="tour-cancel-btn" class="btn btn-secondary hidden" onclick="cancelTourEdit()">Abbrechen</button>
+            <button type="submit" id="tour-submit-btn" class="btn" style="flex:1;">
+              <svg class="icon"><use href="#i-save"/></svg> Tour speichern & Stunden/KM addieren
+            </button>
+            <button type="button" id="tour-cancel-btn" class="btn btn-secondary hidden" onclick="cancelTourEdit()">
+              <svg class="icon"><use href="#i-x"/></svg> Abbrechen
+            </button>
           </div>
         </form>
 
@@ -355,7 +444,7 @@
 
       <div class="card">
         <div class="card-header">
-          <div class="card-title">📋 Eingetragene Touren, HM, Zeit & Effizienz</div>
+          <div class="card-title"><svg class="icon"><use href="#i-list"/></svg> Eingetragene Touren, HM, Zeit & Effizienz</div>
         </div>
         <div style="overflow-x:auto;">
           <table>
@@ -383,32 +472,32 @@
       <!-- FEDERGABEL -->
       <div class="card" style="border-top: 4px solid var(--accent);">
         <div class="card-header">
-          <div class="card-title">🥢 Federgabel (<span id="susp-fork-title"></span>)</div>
+          <div class="card-title"><svg class="icon"><use href="#i-sliders"/></svg> Federgabel (<span id="susp-fork-title"></span>)</div>
           <span class="badge badge-nm">Klicks ab geschlossen (-)</span>
         </div>
         <div class="dial-grid">
           <div class="dial-box">
-            <label>💨 Luftdruck (PSI)</label>
+            <label><svg class="icon icon-sm"><use href="#i-gauge"/></svg> Luftdruck (PSI)</label>
             <input type="text" id="susp-fork-psi" placeholder="z. B. 105 PSI" onchange="saveSuspension()">
           </div>
           <div class="dial-box">
-            <label>📏 SAG (% / mm)</label>
+            <label><svg class="icon icon-sm"><use href="#i-ruler"/></svg> SAG (% / mm)</label>
             <input type="text" id="susp-fork-sag" placeholder="z. B. 20% (32 mm)" onchange="saveSuspension()">
           </div>
           <div class="dial-box">
-            <label>🧱 Volume Spacer (Tokens)</label>
+            <label><svg class="icon icon-sm"><use href="#i-layers"/></svg> Volume Spacer (Tokens)</label>
             <input type="text" id="susp-fork-tokens" placeholder="z. B. 2 Tokens" onchange="saveSuspension()">
           </div>
           <div class="dial-box">
-            <label>🐢🐇 Rebound / Zugstufe (LSR)</label>
+            <label><svg class="icon icon-sm"><use href="#i-refresh"/></svg> Rebound / Zugstufe (LSR)</label>
             <input type="text" id="susp-fork-rebound" placeholder="z. B. 7 Klicks" onchange="saveSuspension()">
           </div>
           <div class="dial-box">
-            <label>🔵 Low-Speed Comp. (LSC)</label>
+            <label><svg class="icon icon-sm"><use href="#i-sliders"/></svg> Low-Speed Comp. (LSC)</label>
             <input type="text" id="susp-fork-lsc" placeholder="z. B. 8 Klicks / Offen" onchange="saveSuspension()">
           </div>
           <div class="dial-box">
-            <label>🔴 High-Speed Comp. (HSC)</label>
+            <label><svg class="icon icon-sm"><use href="#i-sliders"/></svg> High-Speed Comp. (HSC)</label>
             <input type="text" id="susp-fork-hsc" placeholder="z. B. 2 Klicks / - " onchange="saveSuspension()">
           </div>
         </div>
@@ -419,33 +508,33 @@
       <!-- DÄMPFER -->
       <div class="card" id="susp-shock-card" style="border-top: 4px solid var(--accent);">
         <div class="card-header">
-          <div class="card-title">🌀 Dämpfer (<span id="susp-shock-title"></span>)</div>
+          <div class="card-title"><svg class="icon"><use href="#i-sliders"/></svg> Dämpfer (<span id="susp-shock-title"></span>)</div>
           <span class="badge badge-nm">Klicks ab geschlossen (-)</span>
         </div>
         <div id="susp-shock-body">
           <div class="dial-grid">
             <div class="dial-box">
-              <label>💨 Luftdruck (PSI)</label>
+              <label><svg class="icon icon-sm"><use href="#i-gauge"/></svg> Luftdruck (PSI)</label>
               <input type="text" id="susp-shock-psi" placeholder="z. B. 240 PSI" onchange="saveSuspension()">
             </div>
             <div class="dial-box">
-              <label>📏 SAG (% / Hub mm)</label>
+              <label><svg class="icon icon-sm"><use href="#i-ruler"/></svg> SAG (% / Hub mm)</label>
               <input type="text" id="susp-shock-sag" placeholder="z. B. 28% (15 mm)" onchange="saveSuspension()">
             </div>
             <div class="dial-box">
-              <label>🧱 Volume Spacer (Tokens)</label>
+              <label><svg class="icon icon-sm"><use href="#i-layers"/></svg> Volume Spacer (Tokens)</label>
               <input type="text" id="susp-shock-tokens" placeholder="z. B. 1 Token" onchange="saveSuspension()">
             </div>
             <div class="dial-box">
-              <label>🐢🐇 Rebound / Zugstufe</label>
+              <label><svg class="icon icon-sm"><use href="#i-refresh"/></svg> Rebound / Zugstufe</label>
               <input type="text" id="susp-shock-rebound" placeholder="z. B. 6 Klicks" onchange="saveSuspension()">
             </div>
             <div class="dial-box">
-              <label>🔵 Low-Speed Comp. (LSC)</label>
+              <label><svg class="icon icon-sm"><use href="#i-sliders"/></svg> Low-Speed Comp. (LSC)</label>
               <input type="text" id="susp-shock-lsc" placeholder="z. B. 5 Klicks" onchange="saveSuspension()">
             </div>
             <div class="dial-box">
-              <label>🔴 High-Speed Comp. (HSC)</label>
+              <label><svg class="icon icon-sm"><use href="#i-sliders"/></svg> High-Speed Comp. (HSC)</label>
               <input type="text" id="susp-shock-hsc" placeholder="z. B. Mittel (0)" onchange="saveSuspension()">
             </div>
           </div>
@@ -463,13 +552,13 @@
     <!-- INTERAKTIVER SAG-RECHNER -->
     <div class="card">
       <div class="card-header">
-        <div class="card-title">📐 Interaktiver SAG-Rechner (<span class="active-bike-name"></span>)</div>
-        <span class="badge badge-ok">O-Ring Abstand in mm messen -> Prozent berechnen</span>
+        <div class="card-title"><svg class="icon"><use href="#i-ruler"/></svg> Interaktiver SAG-Rechner (<span class="active-bike-name"></span>)</div>
+        <span class="badge badge-ok">O-Ring Abstand in mm messen &rarr; Prozent berechnen</span>
       </div>
       <div class="grid-2">
         <!-- Gabel SAG Rechner -->
         <div>
-          <strong style="font-size:0.95rem;">🥢 Gabel-SAG berechnen</strong>
+          <strong style="font-size:0.95rem;">Gabel-SAG berechnen</strong>
           <div class="dial-grid" style="margin-top:8px;">
             <div class="dial-box">
               <label>Max. Gabelhub (mm)</label>
@@ -485,13 +574,15 @@
               <div style="font-size:0.78rem; color:var(--text-muted);">Ergebnis Gabel-SAG (Ziel: ~15–22%)</div>
               <div class="sag-value" id="calc-fork-result">-- %</div>
             </div>
-            <button class="btn btn-success" onclick="applyCalculatedSag('fork')">⬆️ In Gabel-Setup übernehmen</button>
+            <button class="btn btn-success" onclick="applyCalculatedSag('fork')">
+              <svg class="icon icon-sm"><use href="#i-check"/></svg> In Gabel-Setup übernehmen
+            </button>
           </div>
         </div>
 
         <!-- Dämpfer SAG Rechner -->
         <div id="calc-shock-container">
-          <strong style="font-size:0.95rem;">🌀 Dämpfer-SAG berechnen</strong>
+          <strong style="font-size:0.95rem;">Dämpfer-SAG berechnen</strong>
           <div class="dial-grid" style="margin-top:8px;">
             <div class="dial-box">
               <label>Max. Dämpferhub (mm)</label>
@@ -507,7 +598,9 @@
               <div style="font-size:0.78rem; color:var(--text-muted);">Ergebnis Dämpfer-SAG (Ziel: ~25–30%)</div>
               <div class="sag-value" id="calc-shock-result">-- %</div>
             </div>
-            <button class="btn btn-success" onclick="applyCalculatedSag('shock')">⬆️ In Dämpfer-Setup übernehmen</button>
+            <button class="btn btn-success" onclick="applyCalculatedSag('shock')">
+              <svg class="icon icon-sm"><use href="#i-check"/></svg> In Dämpfer-Setup übernehmen
+            </button>
           </div>
         </div>
       </div>
@@ -517,7 +610,7 @@
       <!-- REIFENDRUCK & SYSTEMGEWICHT -->
       <div class="card">
         <div class="card-header">
-          <div class="card-title">🛞 Reifendruck & Basis-Setup (<span class="active-bike-name"></span>)</div>
+          <div class="card-title"><svg class="icon"><use href="#i-disc"/></svg> Reifendruck & Basis-Setup (<span class="active-bike-name"></span>)</div>
         </div>
         <div class="grid-3">
           <div class="dial-box">
@@ -538,22 +631,24 @@
       <!-- SETUP PRESETS / LOGBUCH -->
       <div class="card">
         <div class="card-header">
-          <div class="card-title">💾 Setup-Presets für <span class="active-bike-name"></span></div>
+          <div class="card-title"><svg class="icon"><use href="#i-save"/></svg> Setup-Presets für <span class="active-bike-name"></span></div>
         </div>
         <div style="display:flex; gap:8px; margin-bottom:12px;">
           <input type="text" id="preset-name" placeholder="Name (z. B. Hometrail Trocken, Bikepark, Winter)..." style="margin-top:0;">
-          <button class="btn" onclick="saveSuspensionPreset()" style="white-space:nowrap;">Aktuelles Setup merken</button>
+          <button class="btn" onclick="saveSuspensionPreset()" style="white-space:nowrap;">
+            <svg class="icon"><use href="#i-plus"/></svg> Merken
+          </button>
         </div>
         <div id="susp-presets-list"></div>
       </div>
     </div>
   </section>
 
-  <!-- TAB 4: WARTUNGEN & 50h/200h SERVICE TRACKER (INKL. BEARBEITEN) -->
+  <!-- TAB 4: WARTUNGEN & 50h/200h SERVICE TRACKER -->
   <section id="tab-maintenance" class="hidden">
     <div class="card" style="border-top: 4px solid var(--accent);">
       <div class="card-header">
-        <div class="card-title">⏱️ RockShox 50h / 200h Fahrwerks-Service-Tracker (<span class="active-bike-name"></span>)</div>
+        <div class="card-title"><svg class="icon"><use href="#i-clock"/></svg> RockShox 50h / 200h Fahrwerks-Service-Tracker (<span class="active-bike-name"></span>)</div>
         <span class="badge badge-nm" id="maint-total-hours-badge">Gesamt-Betriebsstunden: -- h</span>
       </div>
       <div class="grid-2" id="service-timers-detail"></div>
@@ -561,14 +656,16 @@
 
     <div class="card" id="maint-form-card">
       <div class="card-header">
-        <div class="card-title" id="maint-form-title">🔧 Wartung & Service für <span class="active-bike-name"></span> hinzufügen</div>
+        <div class="card-title" id="maint-form-title">
+          <svg class="icon"><use href="#i-wrench"/></svg> Wartung & Service für <span class="active-bike-name"></span> hinzufügen
+        </div>
       </div>
       <form onsubmit="saveMaintenance(event)" class="grid-3">
         <div>
           <label>Status</label>
           <select id="maint-status">
-            <option value="upcoming">⏳ Anstehend / Geplant</option>
-            <option value="done">✅ Erledigt</option>
+            <option value="upcoming">Anstehend / Geplant</option>
+            <option value="done">Erledigt</option>
           </select>
         </div>
         <div>
@@ -588,8 +685,12 @@
           <input type="text" id="maint-notes" placeholder="z. B. Maxima Plush, Cura Sinter-Beläge">
         </div>
         <div style="display:flex; align-items:flex-end; gap:8px;">
-          <button type="submit" id="maint-submit-btn" class="btn" style="flex:1;">Wartung speichern</button>
-          <button type="button" id="maint-cancel-btn" class="btn btn-secondary hidden" onclick="cancelMaintenanceEdit()">Abbrechen</button>
+          <button type="submit" id="maint-submit-btn" class="btn" style="flex:1;">
+            <svg class="icon"><use href="#i-save"/></svg> Wartung speichern
+          </button>
+          <button type="button" id="maint-cancel-btn" class="btn btn-secondary hidden" onclick="cancelMaintenanceEdit()">
+            <svg class="icon"><use href="#i-x"/></svg> Abbrechen
+          </button>
         </div>
       </form>
     </div>
@@ -597,28 +698,31 @@
     <div class="grid-2">
       <div class="card">
         <div class="card-header">
-          <div class="card-title">⏳ Anstehende Wartungen (<span class="active-bike-name"></span>)</div>
+          <div class="card-title"><svg class="icon"><use href="#i-clock"/></svg> Anstehende Wartungen (<span class="active-bike-name"></span>)</div>
         </div>
         <div id="maint-upcoming-list"></div>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <div class="card-title">✅ Erledigte Wartungen (<span class="active-bike-name"></span>)</div>
+          <div class="card-title"><svg class="icon"><use href="#i-check"/></svg> Erledigte Wartungen (<span class="active-bike-name"></span>)</div>
         </div>
         <div id="maint-done-list"></div>
       </div>
     </div>
   </section>
 
-  <!-- TAB 5: DREHMOMENTE (INKL. BEARBEITEN) -->
+  <!-- TAB 5: DREHMOMENTE -->
   <section id="tab-torques" class="hidden">
     <div class="grid-2">
       <div class="card">
         <div class="card-header">
-          <div class="card-title">🔩 Drehmomente: <span class="active-bike-name"></span></div>
+          <div class="card-title"><svg class="icon"><use href="#i-nut"/></svg> Drehmomente: <span class="active-bike-name"></span></div>
         </div>
-        <input type="text" id="torque-search" placeholder="🔍 Schraube oder Bauteil filtern (z. B. Vorbau, Bremse, Dämpfer)..." oninput="renderTorques()" style="margin-bottom: 10px;">
+        <div class="search-wrapper">
+          <svg class="icon"><use href="#i-search"/></svg>
+          <input type="text" id="torque-search" placeholder="Schraube oder Bauteil filtern (z. B. Vorbau, Bremse, Dämpfer)..." oninput="renderTorques()">
+        </div>
         <div style="overflow-x:auto;">
           <table>
             <thead>
@@ -636,7 +740,9 @@
 
       <div class="card" id="torque-form-card">
         <div class="card-header">
-          <div class="card-title" id="torque-form-title">➕ Neues Drehmoment für <span class="active-bike-name"></span></div>
+          <div class="card-title" id="torque-form-title">
+            <svg class="icon"><use href="#i-plus"/></svg> Neues Drehmoment für <span class="active-bike-name"></span>
+          </div>
         </div>
         <form onsubmit="saveTorque(event)">
           <label>Bauteil / Schraube</label>
@@ -646,34 +752,42 @@
           <label>Werkzeug / Schraubensicherung</label>
           <input type="text" id="torque-note" placeholder="z. B. Inbus 5mm, Loctite 243 mittelfest">
           <div style="display:flex; gap:10px; margin-top:14px;">
-            <button type="submit" id="torque-submit-btn" class="btn" style="flex:1;">Drehmoment hinzufügen</button>
-            <button type="button" id="torque-cancel-btn" class="btn btn-secondary hidden" onclick="cancelTorqueEdit()">Abbrechen</button>
+            <button type="submit" id="torque-submit-btn" class="btn" style="flex:1;">
+              <svg class="icon"><use href="#i-save"/></svg> Drehmoment hinzufügen
+            </button>
+            <button type="button" id="torque-cancel-btn" class="btn btn-secondary hidden" onclick="cancelTorqueEdit()">
+              <svg class="icon"><use href="#i-x"/></svg> Abbrechen
+            </button>
           </div>
         </form>
       </div>
     </div>
   </section>
 
-  <!-- TAB 6: SPEZIFIKATIONEN & FOTOS (INKL. BEARBEITEN) -->
+  <!-- TAB 6: SPEZIFIKATIONEN & FOTOS -->
   <section id="tab-specs" class="hidden">
     <div class="grid-2">
       <div class="card">
         <div class="card-header">
-          <div class="card-title">📸 Foto: <span class="active-bike-name"></span></div>
+          <div class="card-title"><svg class="icon"><use href="#i-camera"/></svg> Foto: <span class="active-bike-name"></span></div>
         </div>
         <div class="bike-photo-box" id="bike-photo-preview">
           <span style="color:var(--text-muted); font-size:0.9rem;">Noch kein Foto hinterlegt</span>
         </div>
         <input type="file" id="bike-photo-input" accept="image/*" class="hidden" onchange="handleBikePhotoUpload(event)">
         <div style="display:flex; gap:10px;">
-          <button class="btn" style="flex:1;" onclick="document.getElementById('bike-photo-input').click()">📷 Fahrrad-Foto auswählen / ändern</button>
-          <button class="btn btn-danger" onclick="removeBikePhoto()">Foto löschen</button>
+          <button class="btn" style="flex:1;" onclick="document.getElementById('bike-photo-input').click()">
+            <svg class="icon"><use href="#i-camera"/></svg> Fahrrad-Foto auswählen / ändern
+          </button>
+          <button class="btn btn-danger" onclick="removeBikePhoto()" title="Foto löschen">
+            <svg class="icon icon-sm"><use href="#i-trash"/></svg> Löschen
+          </button>
         </div>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <div class="card-title">⚙️ Technische Spezifikationen (<span class="active-bike-name"></span>)</div>
+          <div class="card-title"><svg class="icon"><use href="#i-layers"/></svg> Technische Spezifikationen (<span class="active-bike-name"></span>)</div>
         </div>
         <div style="overflow-x:auto;">
           <table>
@@ -689,7 +803,9 @@
         </div>
 
         <form onsubmit="saveSpec(event)" style="margin-top:16px; padding-top:12px; border-top:1px solid var(--border);">
-          <div class="card-title" id="spec-form-title" style="font-size:0.95rem; margin-bottom:6px;">➕ Spezifikation ergänzen</div>
+          <div class="card-title" id="spec-form-title" style="font-size:0.95rem; margin-bottom:6px;">
+            <svg class="icon icon-sm"><use href="#i-plus"/></svg> Spezifikation ergänzen
+          </div>
           <div class="grid-2" style="gap:10px;">
             <div>
               <label>Kategorie</label>
@@ -701,8 +817,12 @@
             </div>
           </div>
           <div style="display:flex; gap:10px; margin-top:10px;">
-            <button type="submit" id="spec-submit-btn" class="btn" style="flex:1;">Spezifikation ergänzen</button>
-            <button type="button" id="spec-cancel-btn" class="btn btn-secondary hidden" onclick="cancelSpecEdit()">Abbrechen</button>
+            <button type="submit" id="spec-submit-btn" class="btn" style="flex:1;">
+              <svg class="icon"><use href="#i-save"/></svg> Spezifikation ergänzen
+            </button>
+            <button type="button" id="spec-cancel-btn" class="btn btn-secondary hidden" onclick="cancelSpecEdit()">
+              <svg class="icon"><use href="#i-x"/></svg> Abbrechen
+            </button>
           </div>
         </form>
       </div>
@@ -714,7 +834,7 @@
     <div class="grid-2">
       <div class="card">
         <div class="card-header">
-          <div class="card-title">☁️ Supabase Cloud-Synchronisation</div>
+          <div class="card-title"><svg class="icon"><use href="#i-cloud"/></svg> Supabase Cloud-Synchronisation</div>
         </div>
         <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:12px;">
           Trage hier deine kostenlose Supabase Project URL und deinen Anon Public Key ein, um deine Daten und Fotos automatisch zwischen Windows-PC und Android zu synchronisieren.
@@ -724,32 +844,46 @@
         <label>Supabase Anon Public Key</label>
         <input type="password" id="sb-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6...">
         <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
-          <button class="btn" onclick="saveSupabaseConfig()">🔄 Verbinden & Synchronisieren</button>
-          <button class="btn btn-secondary" onclick="pushToCloud(true)">⬆️ Lokalen Stand in Cloud senden</button>
-          <button class="btn btn-secondary" onclick="pullFromCloud(true)">⬇️ Cloud-Stand abrufen</button>
+          <button class="btn" onclick="saveSupabaseConfig()">
+            <svg class="icon"><use href="#i-refresh"/></svg> Verbinden & Synchronisieren
+          </button>
+          <button class="btn btn-secondary" onclick="pushToCloud(true)">
+            <svg class="icon"><use href="#i-upload"/></svg> In Cloud senden
+          </button>
+          <button class="btn btn-secondary" onclick="pullFromCloud(true)">
+            <svg class="icon"><use href="#i-download"/></svg> Cloud-Stand abrufen
+          </button>
         </div>
         <p id="sb-status-msg" style="font-size:0.83rem; margin-top:12px; color:var(--text-muted);"></p>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <div class="card-title">🎨 Eigenes App-Icon & Datensicherung</div>
+          <div class="card-title"><svg class="icon"><use href="#i-camera"/></svg> Eigenes App-Icon & Datensicherung</div>
         </div>
         <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:12px;">
           Lade ein eigenes Logo oder Bild für deine App hoch. Es wird oben im Header, als Browser-Favicon und in der Cloud gespeichert.
         </p>
         <input type="file" id="app-icon-input" accept="image/*" class="hidden" onchange="handleAppIconUpload(event)">
         <div style="display:flex; gap:10px; margin-bottom:22px;">
-          <button class="btn" onclick="document.getElementById('app-icon-input').click()">🖼️ Eigenes App-Icon hochladen</button>
-          <button class="btn btn-danger" onclick="resetAppIcon()">Standard-Icon</button>
+          <button class="btn" onclick="document.getElementById('app-icon-input').click()">
+            <svg class="icon"><use href="#i-upload"/></svg> Eigenes App-Icon hochladen
+          </button>
+          <button class="btn btn-danger" onclick="resetAppIcon()">
+            <svg class="icon icon-sm"><use href="#i-refresh"/></svg> Standard-Icon
+          </button>
         </div>
 
         <div style="padding-top:16px; border-top:1px solid var(--border);">
           <div class="card-title" style="font-size:0.95rem; margin-bottom:8px;">Manuelles JSON-Backup (PC / Handy)</div>
           <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button class="btn btn-secondary" onclick="exportBackup()">💾 Backup-Datei herunterladen</button>
+            <button class="btn btn-secondary" onclick="exportBackup()">
+              <svg class="icon"><use href="#i-download"/></svg> Backup herunterladen
+            </button>
             <input type="file" id="import-file" accept=".json" class="hidden" onchange="importBackup(event)">
-            <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">📂 Backup-Datei einspielen</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">
+              <svg class="icon"><use href="#i-upload"/></svg> Backup einspielen
+            </button>
           </div>
         </div>
       </div>
@@ -762,7 +896,6 @@
   const SB_CONFIG_KEY = 'bike_tlc_supabase_cfg';
   let activeBike = 'propain';
 
-  // Edit-State-Variablen für alle 4 Bereiche
   let editingTourId = null;
   let editingMaintId = null;
   let editingTorqueIndex = null;
@@ -770,6 +903,11 @@
 
   let kmChart = null;
   let supabaseClient = null;
+
+  // Hilfsfunktion zum Erzeugen von SVG-Icons in dynamischem HTML
+  function svgIcon(name, sizeClass = '') {
+    return `<svg class="icon ${sizeClass}"><use href="#i-${name}"/></svg>`;
+  }
 
   const defaultSuspensionPropain = {
     forkModel: 'RockShox Lyrik Ultimate (160 mm)',
@@ -1074,7 +1212,7 @@
       document.getElementById('dynamic-favicon').href = appData.appIcon;
       document.getElementById('dynamic-apple-icon').href = appData.appIcon;
     } else {
-      iconBox.innerHTML = '🚵';
+      iconBox.innerHTML = svgIcon('bike', 'icon-lg');
     }
 
     const propainBase = parseFloat(appData.bikes.propain.baseKm);
@@ -1101,21 +1239,21 @@
 
     const pEff = getBikeAverageEfficiency('propain');
     document.getElementById('kpi-propain-energy').innerHTML = pEff
-      ? `<span>⚡ Ø ${pEff.avgWhPerKm.toLocaleString('de-DE', {minimumFractionDigits:1, maximumFractionDigits:1})} Wh/km</span><span>🏁 100% ≈ ${Math.round(pEff.avgRange100)} km</span>`
-      : `<span>⚡ Ø Verbrauch: -- Wh/km</span><span>🏁 Ø 100% Reichweite: -- km</span>`;
+      ? `<span class="inline-meta">${svgIcon('zap', 'icon-sm')} Ø ${pEff.avgWhPerKm.toLocaleString('de-DE', {minimumFractionDigits:1, maximumFractionDigits:1})} Wh/km</span><span class="inline-meta">${svgIcon('flag', 'icon-sm')} 100% &approx; ${Math.round(pEff.avgRange100)} km</span>`
+      : `<span class="inline-meta">${svgIcon('zap', 'icon-sm')} Ø Verbrauch: -- Wh/km</span><span class="inline-meta">${svgIcon('flag', 'icon-sm')} Ø 100% Reichweite: -- km</span>`;
 
-    document.getElementById('kpi-propain-stats').innerHTML = `<span>⏱️ Betriebsstunden: <strong>${formatHours(propainHours)}</strong></span><span>⛰️ Touren-HM: <strong>${propainHm.toLocaleString('de-DE')} hm</strong></span>`;
+    document.getElementById('kpi-propain-stats').innerHTML = `<span class="inline-meta">${svgIcon('clock', 'icon-sm')} Betriebsstunden: <strong>${formatHours(propainHours)}</strong></span><span class="inline-meta">${svgIcon('mountain', 'icon-sm')} Touren-HM: <strong>${propainHm.toLocaleString('de-DE')} hm</strong></span>`;
 
     const cEff = getBikeAverageEfficiency('canyon');
     document.getElementById('kpi-canyon-energy').innerHTML = cEff
-      ? `<span>⚡ Ø ${cEff.avgWhPerKm.toLocaleString('de-DE', {minimumFractionDigits:1, maximumFractionDigits:1})} Wh/km</span><span>🏁 100% ≈ ${Math.round(cEff.avgRange100)} km</span>`
-      : `<span>⚡ Ø Verbrauch: -- Wh/km</span><span>🏁 Ø 100% Reichweite: -- km</span>`;
+      ? `<span class="inline-meta">${svgIcon('zap', 'icon-sm')} Ø ${cEff.avgWhPerKm.toLocaleString('de-DE', {minimumFractionDigits:1, maximumFractionDigits:1})} Wh/km</span><span class="inline-meta">${svgIcon('flag', 'icon-sm')} 100% &approx; ${Math.round(cEff.avgRange100)} km</span>`
+      : `<span class="inline-meta">${svgIcon('zap', 'icon-sm')} Ø Verbrauch: -- Wh/km</span><span class="inline-meta">${svgIcon('flag', 'icon-sm')} Ø 100% Reichweite: -- km</span>`;
 
-    document.getElementById('kpi-canyon-stats').innerHTML = `<span>⏱️ Betriebsstunden: <strong>${formatHours(canyonHours)}</strong></span><span>⛰️ Touren-HM: <strong>${canyonHm.toLocaleString('de-DE')} hm</strong></span>`;
+    document.getElementById('kpi-canyon-stats').innerHTML = `<span class="inline-meta">${svgIcon('clock', 'icon-sm')} Betriebsstunden: <strong>${formatHours(canyonHours)}</strong></span><span class="inline-meta">${svgIcon('mountain', 'icon-sm')} Touren-HM: <strong>${canyonHm.toLocaleString('de-DE')} hm</strong></span>`;
 
     document.getElementById('kpi-total-km').textContent = formatKm(grandTotal);
     document.getElementById('kpi-total-tours').textContent = `${appData.tours.length} eingetragene Einzel-Touren`;
-    document.getElementById('kpi-total-hm-hours').innerHTML = `<span>⏱️ Gesamt: <strong>${formatHours(totalHoursAll)}</strong></span><span>⛰️ Gesamt-HM: <strong>${totalHmAll.toLocaleString('de-DE')} hm</strong></span>`;
+    document.getElementById('kpi-total-hm-hours').innerHTML = `<span class="inline-meta">${svgIcon('clock', 'icon-sm')} Gesamt: <strong>${formatHours(totalHoursAll)}</strong></span><span class="inline-meta">${svgIcon('mountain', 'icon-sm')} Gesamt-HM: <strong>${totalHmAll.toLocaleString('de-DE')} hm</strong></span>`;
 
     document.getElementById('base-km-propain').value = propainBase;
     document.getElementById('base-km-canyon').value = canyonBase;
@@ -1194,29 +1332,29 @@
     const detailHtml = `
       <div class="service-timer-box">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <strong>🔧 50h Service (Lower Leg / Luftkammer)</strong>
+          <strong class="inline-meta">${svgIcon('wrench', 'icon-sm')} 50h Service (Lower Leg / Luftkammer)</strong>
           <span class="badge" style="background:${color50}; color:#fff;">${since50.toFixed(1)} / 50 h</span>
         </div>
         <div class="progress-track">
           <div class="progress-fill" style="width:${pct50}%; background:${color50};"></div>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.82rem; color:var(--text-muted); margin-top:6px;">
-          <span>${since50 >= 50 ? '⚠️ Service jetzt fällig!' : `Noch ${rem50} h bis zum nächsten 50h-Service`}</span>
-          <button class="btn btn-success" onclick="resetServiceTimer(50)">🔄 50h erledigt (Reset)</button>
+          <span class="inline-meta">${since50 >= 50 ? `${svgIcon('alert', 'icon-sm')} Service jetzt fällig!` : `Noch ${rem50} h bis zum nächsten 50h-Service`}</span>
+          <button class="btn btn-success" onclick="resetServiceTimer(50)">${svgIcon('refresh', 'icon-sm')} 50h Reset</button>
         </div>
       </div>
 
       <div class="service-timer-box">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <strong>🛠️ 200h Service (Dämpferkartusche & Dichtungen)</strong>
+          <strong class="inline-meta">${svgIcon('sliders', 'icon-sm')} 200h Service (Dämpferkartusche & Dichtungen)</strong>
           <span class="badge" style="background:${color200}; color:#fff;">${since200.toFixed(1)} / 200 h</span>
         </div>
         <div class="progress-track">
           <div class="progress-fill" style="width:${pct200}%; background:${color200};"></div>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.82rem; color:var(--text-muted); margin-top:6px;">
-          <span>${since200 >= 200 ? '⚠️ Großer Service fällig!' : `Noch ${rem200} h bis zum 200h-Service`}</span>
-          <button class="btn btn-success" onclick="resetServiceTimer(200)">🔄 200h erledigt (Reset)</button>
+          <span class="inline-meta">${since200 >= 200 ? `${svgIcon('alert', 'icon-sm')} Großer Service fällig!` : `Noch ${rem200} h bis zum 200h-Service`}</span>
+          <button class="btn btn-success" onclick="resetServiceTimer(200)">${svgIcon('refresh', 'icon-sm')} 200h Reset</button>
         </div>
       </div>
     `;
@@ -1225,7 +1363,7 @@
     document.getElementById('dashboard-service-bars').innerHTML = `
       <div class="service-timer-box" style="padding:10px 12px;">
         <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
-          <span>⏱️ <strong>50h Fahrwerks-Intervall:</strong> ${since50.toFixed(1)} / 50 h</span>
+          <span class="inline-meta">${svgIcon('clock', 'icon-sm')} <strong>50h Fahrwerks-Intervall:</strong> ${since50.toFixed(1)} / 50 h</span>
           <span><strong>200h Intervall:</strong> ${since200.toFixed(1)} / 200 h</span>
         </div>
         <div class="progress-track" style="height:7px; margin:6px 0 2px;">
@@ -1296,7 +1434,7 @@
     const rangeStr = Math.round(metrics.estRange100);
     const usedWhStr = Math.round(metrics.usedWh);
 
-    previewEl.innerHTML = `⚡ <strong>${whKmStr} Wh/km</strong> (${usedWhStr} Wh verbraucht) &nbsp;•&nbsp; 🏁 100%-Reichweite: <strong>ca. ${rangeStr} km</strong>`;
+    previewEl.innerHTML = `<span class="inline-meta">${svgIcon('zap', 'icon-sm')} <strong>${whKmStr} Wh/km</strong> (${usedWhStr} Wh verbraucht)</span> &nbsp;&bull;&nbsp; <span class="inline-meta">${svgIcon('flag', 'icon-sm')} 100%-Reichweite: <strong>ca. ${rangeStr} km</strong></span>`;
     previewEl.style.color = 'var(--success)';
   }
 
@@ -1371,8 +1509,8 @@
     document.getElementById('tour-battery').value = (t.batteryLeft !== null && t.batteryLeft !== undefined) ? t.batteryLeft : '';
     document.getElementById('tour-note').value = t.note || '';
 
-    document.getElementById('tour-form-title').textContent = '✏️ Tour bearbeiten';
-    document.getElementById('tour-submit-btn').textContent = '💾 Änderung speichern';
+    document.getElementById('tour-form-title').innerHTML = `${svgIcon('edit')} Tour bearbeiten`;
+    document.getElementById('tour-submit-btn').innerHTML = `${svgIcon('check')} Änderung speichern`;
     document.getElementById('tour-cancel-btn').classList.remove('hidden');
 
     previewTourEnergy();
@@ -1394,8 +1532,8 @@
     document.getElementById('tour-battery').value = '';
     document.getElementById('tour-note').value = '';
 
-    document.getElementById('tour-form-title').textContent = '➕ Neue Tour, Höhenmeter, Fahrzeit & Akku';
-    document.getElementById('tour-submit-btn').textContent = 'Tour speichern & Stunden/KM addieren';
+    document.getElementById('tour-form-title').innerHTML = `${svgIcon('plus')} Neue Tour, Höhenmeter, Fahrzeit & Akku`;
+    document.getElementById('tour-submit-btn').innerHTML = `${svgIcon('save')} Tour speichern & Stunden/KM addieren`;
     document.getElementById('tour-cancel-btn').classList.add('hidden');
 
     previewTourEnergy();
@@ -1440,22 +1578,22 @@
 
       if (m.hasBattery) {
         const badgeClass = m.endPct >= 50 ? 'badge-ok' : (m.endPct >= 20 ? 'badge-due' : 'badge-low');
-        const startHint = m.startPct < 100 ? `${m.startPct}% → ` : '';
-        battHtml = `<span class="badge ${badgeClass}">🔋 ${startHint}${m.endPct}% (${m.remWh} Wh)</span>`;
+        const startHint = m.startPct < 100 ? `${m.startPct}% &rarr; ` : '';
+        battHtml = `<span class="badge ${badgeClass}">${svgIcon('battery', 'icon-sm')} ${startHint}${m.endPct}% (${m.remWh} Wh)</span>`;
 
         if (m.hasConsumption) {
           const whKmStr = m.whPerKm.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
           const rangeStr = Math.round(m.estRange100);
           effHtml = `
-            <div><strong>⚡ ${whKmStr} Wh/km</strong> <span style="font-size:0.78rem; color:var(--text-muted);">(-${Math.round(m.usedWh)} Wh)</span></div>
-            <div style="font-size:0.8rem; color:var(--text-muted);">🏁 100%-Reichweite: <strong>ca. ${rangeStr} km</strong></div>
+            <div class="inline-meta">${svgIcon('zap', 'icon-sm')} <strong>${whKmStr} Wh/km</strong> <span style="font-size:0.78rem; color:var(--text-muted);">(-${Math.round(m.usedWh)} Wh)</span></div>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;" class="inline-meta">${svgIcon('flag', 'icon-sm')} 100%: <strong>ca. ${rangeStr} km</strong></div>
           `;
         }
       }
 
-      const hmStr = t.hm ? `⛰️ ${Number(t.hm).toLocaleString('de-DE')} hm` : '';
-      const hoursStr = t.hours ? `⏱️ ${Number(t.hours).toLocaleString('de-DE', {minimumFractionDigits:1})} h` : '';
-      const subMeta = [hmStr, hoursStr].filter(Boolean).join(' • ');
+      const hmStr = t.hm ? `<span class="inline-meta">${svgIcon('mountain', 'icon-sm')} ${Number(t.hm).toLocaleString('de-DE')} hm</span>` : '';
+      const hoursStr = t.hours ? `<span class="inline-meta">${svgIcon('clock', 'icon-sm')} ${Number(t.hours).toLocaleString('de-DE', {minimumFractionDigits:1})} h</span>` : '';
+      const subMeta = [hmStr, hoursStr].filter(Boolean).join(' &bull; ');
 
       return `
         <tr class="${editingTourId === t.id ? 'editing-row' : ''}">
@@ -1464,13 +1602,13 @@
           <td>${t.note}</td>
           <td>
             <div><strong>+${t.km.toLocaleString('de-DE', {minimumFractionDigits:1})} km</strong></div>
-            ${subMeta ? `<div style="font-size:0.78rem; color:var(--text-muted);">${subMeta}</div>` : ''}
+            ${subMeta ? `<div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">${subMeta}</div>` : ''}
           </td>
           <td>${battHtml}</td>
           <td>${effHtml}</td>
           <td style="text-align:right; white-space:nowrap;">
-            <button class="btn btn-edit" onclick="editTour(${t.id})" title="Tour bearbeiten">✏️</button>
-            <button class="btn btn-danger" onclick="deleteTour(${t.id})" title="Tour löschen">✕</button>
+            <button class="btn btn-edit btn-icon" onclick="editTour(${t.id})" title="Tour bearbeiten">${svgIcon('edit', 'icon-sm')}</button>
+            <button class="btn btn-danger btn-icon" onclick="deleteTour(${t.id})" title="Tour löschen">${svgIcon('trash', 'icon-sm')}</button>
           </td>
         </tr>
       `;
@@ -1526,11 +1664,11 @@
         <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-input); border:1px solid var(--border); border-radius:8px; padding:10px 12px; margin-bottom:8px;">
           <div>
             <strong>${p.name}</strong>
-            <div style="font-size:0.8rem; color:var(--text-muted);">Gabel: ${p.forkPsi} (SAG: ${p.forkSag}) ${susp.hasShock ? `• Dämpfer: ${p.shockPsi} (SAG: ${p.shockSag})` : ''} • Reifen: ${p.tireFront}/${p.tireRear}</div>
+            <div style="font-size:0.8rem; color:var(--text-muted);">Gabel: ${p.forkPsi} (SAG: ${p.forkSag}) ${susp.hasShock ? `&bull; Dämpfer: ${p.shockPsi} (SAG: ${p.shockSag})` : ''} &bull; Reifen: ${p.tireFront}/${p.tireRear}</div>
           </div>
           <div style="display:flex; gap:6px;">
-            <button class="btn btn-success" onclick="applySuspensionPreset(${idx})">Laden</button>
-            <button class="btn btn-danger" onclick="deleteSuspensionPreset(${idx})">✕</button>
+            <button class="btn btn-success" onclick="applySuspensionPreset(${idx})" title="Preset laden">${svgIcon('check', 'icon-sm')} Laden</button>
+            <button class="btn btn-danger btn-icon" onclick="deleteSuspensionPreset(${idx})" title="Preset löschen">${svgIcon('trash', 'icon-sm')}</button>
           </div>
         </div>
       `).join('');
@@ -1731,8 +1869,8 @@
     document.getElementById('maint-title').value = item.title || '';
     document.getElementById('maint-notes').value = item.notes || '';
 
-    document.getElementById('maint-form-title').innerHTML = `✏️ Wartung bearbeiten (<span class="active-bike-name">${appData.bikes[activeBike].name}</span>)`;
-    document.getElementById('maint-submit-btn').textContent = '💾 Änderung speichern';
+    document.getElementById('maint-form-title').innerHTML = `${svgIcon('edit')} Wartung bearbeiten (<span class="active-bike-name">${appData.bikes[activeBike].name}</span>)`;
+    document.getElementById('maint-submit-btn').innerHTML = `${svgIcon('check')} Änderung speichern`;
     document.getElementById('maint-cancel-btn').classList.remove('hidden');
 
     renderMaintenance();
@@ -1750,8 +1888,8 @@
     titleInput.value = '';
     document.getElementById('maint-notes').value = '';
 
-    document.getElementById('maint-form-title').innerHTML = `🔧 Wartung & Service für <span class="active-bike-name">${appData.bikes[activeBike].name}</span> hinzufügen`;
-    document.getElementById('maint-submit-btn').textContent = 'Wartung speichern';
+    document.getElementById('maint-form-title').innerHTML = `${svgIcon('wrench')} Wartung & Service für <span class="active-bike-name">${appData.bikes[activeBike].name}</span> hinzufügen`;
+    document.getElementById('maint-submit-btn').innerHTML = `${svgIcon('save')} Wartung speichern`;
     document.getElementById('maint-cancel-btn').classList.add('hidden');
     renderMaintenance();
   }
@@ -1785,8 +1923,8 @@
     const renderItem = (m, isUpcoming) => {
       const diff = (m.km - currentKm).toFixed(1);
       const badgeHtml = isUpcoming
-        ? `<span class="badge badge-due">Fällig bei ${m.km} km (in ${diff} km)</span>`
-        : `<span class="badge badge-ok">Erledigt bei ${m.km} km</span>`;
+        ? `<span class="badge badge-due">${svgIcon('clock', 'icon-sm')} Fällig bei ${m.km} km (in ${diff} km)</span>`
+        : `<span class="badge badge-ok">${svgIcon('check', 'icon-sm')} Erledigt bei ${m.km} km</span>`;
 
       const isEditing = editingMaintId === m.id;
 
@@ -1795,13 +1933,15 @@
           <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
             <div>
               <strong>${m.title}</strong>
-              <div style="font-size:0.82rem; color:var(--text-muted); margin-top:2px;">📅 ${m.date} • ${m.notes || ''}</div>
+              <div style="font-size:0.82rem; color:var(--text-muted); margin-top:2px;" class="inline-meta">
+                ${svgIcon('calendar', 'icon-sm')} ${m.date} ${m.notes ? `&bull; ${m.notes}` : ''}
+              </div>
               <div style="margin-top:6px;">${badgeHtml}</div>
             </div>
             <div style="display:flex; gap:6px; white-space:nowrap;">
-              ${isUpcoming ? `<button class="btn btn-success" onclick="markMaintenanceDone(${m.id})" title="Als erledigt markieren">✓</button>` : ''}
-              <button class="btn btn-edit" onclick="editMaintenance(${m.id})" title="Wartung bearbeiten">✏️</button>
-              <button class="btn btn-danger" onclick="deleteMaintenance(${m.id})" title="Wartung löschen">✕</button>
+              ${isUpcoming ? `<button class="btn btn-success btn-icon" onclick="markMaintenanceDone(${m.id})" title="Als erledigt bestätigen">${svgIcon('check', 'icon-sm')}</button>` : ''}
+              <button class="btn btn-edit btn-icon" onclick="editMaintenance(${m.id})" title="Wartung bearbeiten">${svgIcon('edit', 'icon-sm')}</button>
+              <button class="btn btn-danger btn-icon" onclick="deleteMaintenance(${m.id})" title="Wartung löschen">${svgIcon('trash', 'icon-sm')}</button>
             </div>
           </div>
         </div>
@@ -1849,8 +1989,8 @@
     document.getElementById('torque-val').value = item.val || '';
     document.getElementById('torque-note').value = item.note || '';
 
-    document.getElementById('torque-form-title').innerHTML = `✏️ Drehmoment bearbeiten (<span class="active-bike-name">${appData.bikes[activeBike].name}</span>)`;
-    document.getElementById('torque-submit-btn').textContent = '💾 Änderung speichern';
+    document.getElementById('torque-form-title').innerHTML = `${svgIcon('edit')} Drehmoment bearbeiten (<span class="active-bike-name">${appData.bikes[activeBike].name}</span>)`;
+    document.getElementById('torque-submit-btn').innerHTML = `${svgIcon('check')} Änderung speichern`;
     document.getElementById('torque-cancel-btn').classList.remove('hidden');
 
     renderTorques();
@@ -1866,8 +2006,8 @@
     document.getElementById('torque-val').value = '';
     document.getElementById('torque-note').value = '';
 
-    document.getElementById('torque-form-title').innerHTML = `➕ Neues Drehmoment für <span class="active-bike-name">${appData.bikes[activeBike].name}</span>`;
-    document.getElementById('torque-submit-btn').textContent = 'Drehmoment hinzufügen';
+    document.getElementById('torque-form-title').innerHTML = `${svgIcon('plus')} Neues Drehmoment für <span class="active-bike-name">${appData.bikes[activeBike].name}</span>`;
+    document.getElementById('torque-submit-btn').innerHTML = `${svgIcon('save')} Drehmoment hinzufügen`;
     document.getElementById('torque-cancel-btn').classList.add('hidden');
     renderTorques();
   }
@@ -1896,8 +2036,8 @@
           <td><span class="badge badge-nm">${t.val}</span></td>
           <td style="color:var(--text-muted);">${t.note || '-'}</td>
           <td style="text-align:right; white-space:nowrap;">
-            <button class="btn btn-edit" onclick="editTorque(${t.idx})" title="Drehmoment bearbeiten">✏️</button>
-            <button class="btn btn-danger" onclick="deleteTorque(${t.idx})" title="Drehmoment löschen">✕</button>
+            <button class="btn btn-edit btn-icon" onclick="editTorque(${t.idx})" title="Drehmoment bearbeiten">${svgIcon('edit', 'icon-sm')}</button>
+            <button class="btn btn-danger btn-icon" onclick="deleteTorque(${t.idx})" title="Drehmoment löschen">${svgIcon('trash', 'icon-sm')}</button>
           </td>
         </tr>
       `).join('');
@@ -1928,8 +2068,8 @@
     document.getElementById('spec-cat').value = item.cat || '';
     document.getElementById('spec-val').value = item.val || '';
 
-    document.getElementById('spec-form-title').textContent = '✏️ Spezifikation bearbeiten';
-    document.getElementById('spec-submit-btn').textContent = '💾 Änderung speichern';
+    document.getElementById('spec-form-title').innerHTML = `${svgIcon('edit', 'icon-sm')} Spezifikation bearbeiten`;
+    document.getElementById('spec-submit-btn').innerHTML = `${svgIcon('check')} Änderung speichern`;
     document.getElementById('spec-cancel-btn').classList.remove('hidden');
 
     renderSpecsAndPhoto();
@@ -1944,8 +2084,8 @@
     catInput.value = '';
     document.getElementById('spec-val').value = '';
 
-    document.getElementById('spec-form-title').textContent = '➕ Spezifikation ergänzen';
-    document.getElementById('spec-submit-btn').textContent = 'Spezifikation ergänzen';
+    document.getElementById('spec-form-title').innerHTML = `${svgIcon('plus', 'icon-sm')} Spezifikation ergänzen`;
+    document.getElementById('spec-submit-btn').innerHTML = `${svgIcon('save')} Spezifikation ergänzen`;
     document.getElementById('spec-cancel-btn').classList.add('hidden');
     renderSpecsAndPhoto();
   }
@@ -1975,8 +2115,8 @@
         <td style="color:var(--text-muted); width:32%;">${s.cat}</td>
         <td><strong>${s.val}</strong></td>
         <td style="text-align:right; white-space:nowrap;">
-          <button class="btn btn-edit" onclick="editSpec(${idx})" title="Spezifikation bearbeiten">✏️</button>
-          <button class="btn btn-danger" onclick="deleteSpec(${idx})" title="Spezifikation löschen">✕</button>
+          <button class="btn btn-edit btn-icon" onclick="editSpec(${idx})" title="Spezifikation bearbeiten">${svgIcon('edit', 'icon-sm')}</button>
+          <button class="btn btn-danger btn-icon" onclick="deleteSpec(${idx})" title="Spezifikation löschen">${svgIcon('trash', 'icon-sm')}</button>
         </td>
       </tr>
     `).join('');
@@ -2095,14 +2235,14 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
         renderAll();
         setSyncStatus(true, 'Cloud verbunden & synchron');
-        if (showMessage) statusMsg.textContent = '✅ Daten erfolgreich aus der Supabase-Cloud geladen.';
+        if (showMessage) statusMsg.textContent = 'Daten erfolgreich aus der Supabase-Cloud geladen.';
       } else {
         await pushToCloud(false);
         setSyncStatus(true, 'Initialer Stand in Cloud gespeichert');
       }
     } catch (err) {
       setSyncStatus(false, 'Cloud-Fehler (Prüfe URL/Key)');
-      if (showMessage) statusMsg.textContent = '❌ Fehler: ' + err.message;
+      if (showMessage) statusMsg.textContent = 'Fehler: ' + err.message;
     }
   }
 
@@ -2116,10 +2256,10 @@
 
       if (error) throw error;
       setSyncStatus(true, 'Cloud synchronisiert');
-      if (showMessage) statusMsg.textContent = '✅ Aktueller Stand erfolgreich in die Cloud übertragen.';
+      if (showMessage) statusMsg.textContent = 'Aktueller Stand erfolgreich in die Cloud übertragen.';
     } catch (err) {
       setSyncStatus(false, 'Sync fehlgeschlagen');
-      if (showMessage) statusMsg.textContent = '❌ Fehler beim Senden: ' + err.message;
+      if (showMessage) statusMsg.textContent = 'Fehler beim Senden: ' + err.message;
     }
   }
 

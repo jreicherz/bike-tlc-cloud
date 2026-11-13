@@ -1,0 +1,25 @@
+{
+  "name": "Bike TLC Pro - Wartung, Fahrwerk & Touren",
+  "short_name": "Bike TLC Pro",
+  "description": "Wartungsplaner, 50h/200h Service-Tracker, SAG-Rechner, Drehmomente und Touren-Logbuch für Propain Sresh SL und Canyon Grizl:ONfly Daily.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#2b333d",
+  "theme_color": "#36404c",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -6,7 +6,7 @@
   <title>Bike TLC Pro</title>
   <meta name="theme-color" content="#36404c">
   <link rel="manifest" href="manifest.json">
-  <link id="dynamic-favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2336404c'/><g fill='none' stroke='%23b91c1c' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'><circle cx='26' cy='68' r='14'/><circle cx='74' cy='68' r='14'/><path d='M26 68l16-28h22l-12 28H26z' stroke='%23f8fafc'/><path d='M58 28h10l6 40' stroke='%23f8fafc'/><path d='M36 40l-4-10h10' stroke='%23f8fafc'/></g></svg>">
+  <link id="dynamic-favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2336404c'/><g fill='none' stroke='%23991b1b' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'><circle cx='26' cy='68' r='14'/><circle cx='74' cy='68' r='14'/><path d='M26 68l16-28h22l-12 28H26z' stroke='%23f8fafc'/><path d='M58 28h10l6 40' stroke='%23f8fafc'/><path d='M36 40l-4-10h10' stroke='%23f8fafc'/></g></svg>">
   <link id="dynamic-apple-icon" rel="apple-touch-icon" href="">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -19,12 +19,12 @@
       --text-main: #f8fafc;
       --text-muted: #cbd5e1;
       --border: #4d5b6b;
-      --propain: #b91c1c; /* Dunkleres, sattes Karmesinrot */
-      --canyon: #1d4ed8;  /* Dunkleres, tiefes Königsblau */
-      --accent: #b91c1c;
-      --success: #059669;
-      --warning: #d97706;
-      --danger: #dc2626;
+      --propain: #991b1b;
+      --canyon: #1e3a8a;
+      --accent: #991b1b;
+      --success: #047857;
+      --warning: #b45309;
+      --danger: #b91c1c;
       --radius: 12px;
     }
 
@@ -74,7 +74,7 @@
       display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;
     }
     .sync-badge:hover { border-color: var(--text-muted); color: var(--text-main); }
-    .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warning); }
+    .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; }
     .sync-dot.online { background: #10b981; }
 
     /* Bike Umschalter (Dynamisch) */
@@ -88,7 +88,7 @@
       display: inline-flex; align-items: center; gap: 6px;
     }
     .bike-btn:hover { color: var(--text-main); }
-    .bike-btn.active { color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
+    .bike-btn.active { color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
     .bike-add-btn {
       border: 1px dashed var(--border); background: transparent; color: var(--text-muted);
       padding: 6px 10px; border-radius: 7px; cursor: pointer; display: inline-flex; align-items: center;
@@ -184,6 +184,7 @@
     }
     .btn:hover { opacity: 0.92; }
     .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
     .btn-secondary { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); }
 
     /* Professionelle Action-Buttons */
@@ -191,6 +192,8 @@
       width: 32px; height: 32px; padding: 0; border-radius: 7px;
       display: inline-flex; align-items: center; justify-content: center;
     }
+    .btn-move { background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border); }
+    .btn-move:hover:not(:disabled) { color: var(--text-main); border-color: var(--text-muted); background: var(--bg-card-hover); }
     .btn-edit { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); padding: 6px 10px; font-size: 0.8rem; }
     .btn-danger { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); padding: 6px 10px; font-size: 0.8rem; }
     .btn-success { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); padding: 6px 10px; font-size: 0.8rem; }
@@ -214,6 +217,10 @@
     .badge-due { background: rgba(245, 158, 11, 0.25); color: #fde68a; }
     .badge-ok { background: rgba(16, 185, 129, 0.25); color: #a7f3d0; }
     .badge-low { background: rgba(239, 68, 68, 0.25); color: #fca5a5; }
+    .pos-badge {
+      font-size: 0.75rem; font-weight: 700; color: var(--text-muted); background: var(--bg-card);
+      border: 1px solid var(--border); border-radius: 6px; padding: 2px 7px;
+    }
 
     /* Setup Dial Boxen */
     .dial-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -283,6 +290,8 @@
   <symbol id="i-ruler" viewBox="0 0 24 24"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></symbol>
   <symbol id="i-list" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></symbol>
   <symbol id="i-disc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-arrow-up" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></symbol>
+  <symbol id="i-arrow-down" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></symbol>
 </svg>
 
 <header>
@@ -299,7 +308,7 @@
     </div>
   </div>
 
-  <!-- Dynamischer Fahrrad-Umschalter inkl. + Button -->
+  <!-- Dynamischer Fahrrad-Umschalter -->
   <div class="bike-switcher" id="bike-switcher-container"></div>
 </header>
 
@@ -824,10 +833,10 @@
       </div>
     </div>
 
-    <!-- FAHRRAD-VERWALTUNG -->
+    <!-- FAHRRAD-VERWALTUNG (INKL. REIHENFOLGE VERSCHIEBEN) -->
     <div class="card" id="bike-manager-card" style="border-top: 4px solid var(--accent);">
       <div class="card-header">
-        <div class="card-title"><svg class="icon"><use href="#i-bike"/></svg> Fahrrad-Verwaltung (Räder anlegen, bearbeiten & löschen)</div>
+        <div class="card-title"><svg class="icon"><use href="#i-bike"/></svg> Fahrrad-Verwaltung (Räder anlegen, sortieren & bearbeiten)</div>
       </div>
       <div class="grid-2">
         <div>
@@ -840,7 +849,7 @@
               </div>
               <div>
                 <label>Akzentfarbe in der App</label>
-                <input type="color" id="bm-color" value="#059669">
+                <input type="color" id="bm-color" value="#047857">
               </div>
             </div>
 
@@ -907,7 +916,10 @@
         </div>
 
         <div>
-          <strong style="font-size:0.95rem;">Angelegte Fahrräder im Bestand</strong>
+          <strong style="font-size:0.95rem;">Angelegte Fahrräder & Reihenfolge</strong>
+          <p style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">
+            Mit den Pfeilen legst du die Position der Fahrräder im Header, Dashboard und Diagramm frei fest.
+          </p>
           <div id="bike-manager-list" style="margin-top:10px;"></div>
         </div>
       </div>
@@ -994,15 +1006,47 @@
     return `<svg class="icon ${sizeClass}"><use href="#i-${name}"/></svg>`;
   }
 
-  // Hex-Farbe in RGBA umwandeln (für weiche Canvas-Verläufe)
   function hexToRgba(hex, alpha) {
-    let c = (hex || '#1d4ed8').replace('#', '');
+    let c = (hex || '#1e3a8a').replace('#', '');
     if (c.length === 3) c = c.split('').map(x => x + x).join('');
     const num = parseInt(c, 16);
     const r = (num >> 16) & 255;
     const g = (num >> 8) & 255;
     const b = num & 255;
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  // Liefert alle Fahrräder sortiert nach der benutzerdefinierten sortOrder (Propain startet auf #1)
+  function getOrderedBikes() {
+    const list = Object.values(appData.bikes || {});
+    const defaultPriority = { propain: 1, canyon: 2 };
+    return list.sort((a, b) => {
+      const orderA = (a.sortOrder !== undefined && a.sortOrder !== null) ? Number(a.sortOrder) : (defaultPriority[a.id] || 99);
+      const orderB = (b.sortOrder !== undefined && b.sortOrder !== null) ? Number(b.sortOrder) : (defaultPriority[b.id] || 99);
+      if (orderA !== orderB) return orderA - orderB;
+      return String(a.id).localeCompare(String(b.id));
+    });
+  }
+
+  // Verschiebt ein Fahrrad um eine Position nach oben (-1) oder unten (+1)
+  function moveBikeOrder(bikeId, direction) {
+    const ordered = getOrderedBikes();
+    const currentIndex = ordered.findIndex(b => b.id === bikeId);
+    if (currentIndex === -1) return;
+
+    const targetIndex = currentIndex + direction;
+    if (targetIndex < 0 || targetIndex >= ordered.length) return;
+
+    // Positionen im Array tauschen und saubere sortOrder (1, 2, 3...) vergeben
+    const temp = ordered[currentIndex];
+    ordered[currentIndex] = ordered[targetIndex];
+    ordered[targetIndex] = temp;
+
+    ordered.forEach((b, idx) => {
+      appData.bikes[b.id].sortOrder = idx + 1;
+    });
+
+    saveData();
   }
 
   function decimalHoursToHM(decHours) {
@@ -1080,8 +1124,9 @@
     bikes: {
       propain: {
         id: 'propain',
+        sortOrder: 1,
         name: 'Propain Sresh SL',
-        color: '#b91c1c', /* Dunkleres Rot */
+        color: '#991b1b',
         batteryWh: 580,
         baseKm: 804.7,
         baseHours: 42.0,
@@ -1115,8 +1160,9 @@
       },
       canyon: {
         id: 'canyon',
+        sortOrder: 2,
         name: 'Canyon Grizl:ONfly Daily',
-        color: '#1d4ed8', /* Dunkleres Königsblau */
+        color: '#1e3a8a',
         batteryWh: 400,
         baseKm: 4148.0,
         baseHours: 165.0,
@@ -1157,15 +1203,20 @@
     if (!data.bikes || Object.keys(data.bikes).length === 0) {
       data.bikes = JSON.parse(JSON.stringify(defaultData.bikes));
     }
-    // Automatische Farb-Migration auf das gewünschte dunklere Rot & dunklere Blau
-    if (data.bikes.propain && (data.bikes.propain.color === '#ef4444' || !data.bikes.propain.color)) {
-      data.bikes.propain.color = '#b91c1c';
+    if (data.bikes.propain && ['#ef4444', '#b91c1c'].includes(data.bikes.propain.color)) {
+      data.bikes.propain.color = '#991b1b';
     }
-    if (data.bikes.canyon && (data.bikes.canyon.color === '#3b82f6' || !data.bikes.canyon.color)) {
-      data.bikes.canyon.color = '#1d4ed8';
+    if (data.bikes.canyon && ['#3b82f6', '#1d4ed8'].includes(data.bikes.canyon.color)) {
+      data.bikes.canyon.color = '#1e3a8a';
     }
 
+    let fallbackOrder = 3;
     Object.values(data.bikes).forEach(b => {
+      if (b.sortOrder === undefined || b.sortOrder === null) {
+        if (b.id === 'propain') b.sortOrder = 1;
+        else if (b.id === 'canyon') b.sortOrder = 2;
+        else b.sortOrder = fallbackOrder++;
+      }
       if (!b.suspension) {
         b.suspension = JSON.parse(JSON.stringify(defaultSuspensionPropain));
       }
@@ -1180,8 +1231,10 @@
       if (!b.suspension.forkTravelMm) b.suspension.forkTravelMm = 150;
       if (!b.suspension.shockStrokeMm) b.suspension.shockStrokeMm = 55;
     });
+
     if (!data.bikes[activeBike]) {
-      activeBike = Object.keys(data.bikes)[0];
+      const firstBike = Object.values(data.bikes).sort((a, b) => a.sortOrder - b.sortOrder)[0];
+      activeBike = firstBike ? firstBike.id : Object.keys(data.bikes)[0];
     }
     return data;
   }
@@ -1286,7 +1339,7 @@
 
   function renderBikeSwitcherAndSelect() {
     const switcher = document.getElementById('bike-switcher-container');
-    const bikesList = Object.values(appData.bikes);
+    const bikesList = getOrderedBikes();
 
     switcher.innerHTML = bikesList.map(b => {
       const isActive = b.id === activeBike;
@@ -1332,7 +1385,7 @@
     cancelTorqueEdit();
     cancelSpecEdit();
 
-    const accent = appData.bikes[bikeId].color || '#b91c1c';
+    const accent = appData.bikes[bikeId].color || '#991b1b';
     document.documentElement.style.setProperty('--accent', accent);
 
     document.getElementById('calc-fork-measured').value = '';
@@ -1357,7 +1410,7 @@
 
   function renderDashboardKpis() {
     const grid = document.getElementById('dashboard-kpi-grid');
-    const bikesList = Object.values(appData.bikes);
+    const bikesList = getOrderedBikes();
 
     let grandTotalKm = 0;
     let totalHmAll = 0;
@@ -1420,7 +1473,7 @@
 
   function renderBaseValuesList() {
     const container = document.getElementById('base-values-list');
-    const bikesList = Object.values(appData.bikes);
+    const bikesList = getOrderedBikes();
 
     container.innerHTML = bikesList.map(b => {
       const hm = decimalHoursToHM(b.baseHours || 0);
@@ -1471,7 +1524,7 @@
   function renderAll() {
     ensureDataIntegrity(appData);
 
-    const currentAccent = appData.bikes[activeBike].color || '#b91c1c';
+    const currentAccent = appData.bikes[activeBike].color || '#991b1b';
     document.documentElement.style.setProperty('--accent', currentAccent);
 
     renderBikeSwitcherAndSelect();
@@ -1501,18 +1554,18 @@
     renderChart();
   }
 
-  // Professionelles Balkendiagramm mit Farbverläufen, Direkt-Labels (KM + %) und Detail-Tooltip
+  // Professionelles Balkendiagramm (sortiert gemäß der festgelegten Reihenfolge)
   function renderChart() {
     const canvas = document.getElementById('kmBarChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
 
-    const bikesList = Object.values(appData.bikes);
+    const bikesList = getOrderedBikes();
     const labels = bikesList.map(b => b.name);
     const baseValues = bikesList.map(b => parseFloat(b.baseKm || 0));
     const tourValues = bikesList.map(b => getBikeTourKm(b.id));
     const totalValues = bikesList.map((b, i) => baseValues[i] + tourValues[i]);
-    const rawColors = bikesList.map(b => b.color || '#1d4ed8');
+    const rawColors = bikesList.map(b => b.color || '#1e3a8a');
 
     const grandTotalKm = totalValues.reduce((s, v) => s + v, 0);
     const grandBaseKm = baseValues.reduce((s, v) => s + v, 0);
@@ -1522,17 +1575,15 @@
     totalValues.push(grandTotalKm);
     baseValues.push(grandBaseKm);
     tourValues.push(grandTourKm);
-    rawColors.push('#059669'); // Sattes Smaragdgrün für den Gesamtstand
+    rawColors.push('#047857');
 
-    // Vertikale Canvas-Farbverläufe für edle Optik
     const bgGradients = rawColors.map(hex => {
       const grad = ctx.createLinearGradient(0, 0, 0, 280);
-      grad.addColorStop(0, hexToRgba(hex, 0.95));
-      grad.addColorStop(1, hexToRgba(hex, 0.28));
+      grad.addColorStop(0, hexToRgba(hex, 0.96));
+      grad.addColorStop(1, hexToRgba(hex, 0.35));
       return grad;
     });
 
-    // Eigenes Plugin für gestochen scharfe Wert- & Prozent-Labels über jedem Balken
     const topValueLabelsPlugin = {
       id: 'topValueLabels',
       afterDatasetsDraw(chart) {
@@ -1550,12 +1601,10 @@
           c.textAlign = 'center';
           c.textBaseline = 'bottom';
 
-          // Hauptwert (KM)
           c.font = '700 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
           c.fillStyle = '#f8fafc';
           c.fillText(kmText, bar.x, bar.y - 18);
 
-          // Subwert (Prozentanteil)
           c.font = '600 10.5px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
           c.fillStyle = '#cbd5e1';
           c.fillText(subText, bar.x, bar.y - 4);
@@ -1766,7 +1815,7 @@
 
     if (!metrics.hasConsumption) {
       previewEl.textContent = 'Start-Akku muss größer als der Rest-Akku sein.';
-      previewEl.style.color = 'var(--warning)';
+      previewEl.style.color = '#f59e0b';
       return;
     }
 
@@ -1778,7 +1827,7 @@
     previewEl.style.color = '#10b981';
   }
 
-  // 1. TOUREN: Hinzufügen, Bearbeiten & Löschen (mit Std. & Min.)
+  // 1. TOUREN: Hinzufügen, Bearbeiten & Löschen
   function saveTour(e) {
     e.preventDefault();
     const bike = document.getElementById('tour-bike').value;
@@ -2457,11 +2506,11 @@
     `).join('');
   }
 
-  // 5. FAHRRAD-VERWALTUNG: Weitere Fahrräder anlegen, bearbeiten & löschen
+  // 5. FAHRRAD-VERWALTUNG: Weitere Fahrräder anlegen, sortieren, bearbeiten & löschen
   function saveBikeEntity(e) {
     e.preventDefault();
     const name = document.getElementById('bm-name').value.trim();
-    const color = document.getElementById('bm-color').value || '#059669';
+    const color = document.getElementById('bm-color').value || '#047857';
     const batteryWh = Math.max(0, parseInt(document.getElementById('bm-battery').value || '0', 10));
     const baseKm = Math.max(0, parseFloat(document.getElementById('bm-base-km').value || '0'));
     const baseH = document.getElementById('bm-base-h').value;
@@ -2488,8 +2537,10 @@
       cancelBikeEntityEdit();
     } else {
       const newId = 'bike_' + Date.now();
+      const maxOrder = getOrderedBikes().reduce((max, b) => Math.max(max, Number(b.sortOrder || 0)), 0);
       appData.bikes[newId] = {
         id: newId,
+        sortOrder: maxOrder + 1,
         name,
         color,
         batteryWh,
@@ -2547,7 +2598,7 @@
 
     editingBikeEntityId = id;
     document.getElementById('bm-name').value = b.name || '';
-    document.getElementById('bm-color').value = b.color || '#059669';
+    document.getElementById('bm-color').value = b.color || '#047857';
     document.getElementById('bm-battery').value = b.batteryWh || 0;
     document.getElementById('bm-base-km').value = b.baseKm || 0;
 
@@ -2575,7 +2626,7 @@
     if (!nameInput) return;
 
     nameInput.value = '';
-    document.getElementById('bm-color').value = '#059669';
+    document.getElementById('bm-color').value = '#047857';
     document.getElementById('bm-battery').value = '0';
     document.getElementById('bm-base-km').value = '0';
     document.getElementById('bm-base-h').value = '0';
@@ -2605,8 +2656,12 @@
     }
     delete appData.bikes[id];
     appData.tours = appData.tours.filter(t => t.bike !== id);
+    const remainingOrdered = getOrderedBikes();
+    remainingOrdered.forEach((bikeItem, idx) => {
+      appData.bikes[bikeItem.id].sortOrder = idx + 1;
+    });
     if (activeBike === id) {
-      activeBike = Object.keys(appData.bikes)[0];
+      activeBike = remainingOrdered[0].id;
     }
     if (editingBikeEntityId === id) {
       cancelBikeEntityEdit();
@@ -2617,17 +2672,20 @@
   function renderBikeManagerList() {
     const container = document.getElementById('bike-manager-list');
     if (!container) return;
-    const bikesList = Object.values(appData.bikes);
+    const bikesList = getOrderedBikes();
 
-    container.innerHTML = bikesList.map(b => {
+    container.innerHTML = bikesList.map((b, idx) => {
       const totalKm = getBikeTotalKm(b.id);
       const totalH = getBikeTotalHours(b.id);
       const isEditing = editingBikeEntityId === b.id;
+      const isFirst = idx === 0;
+      const isLast = idx === bikesList.length - 1;
 
       return `
-        <div class="${isEditing ? 'editing-box' : ''}" style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-input); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:10px;">
+        <div class="${isEditing ? 'editing-box' : ''}" style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-input); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:10px; gap:10px;">
           <div>
-            <div style="display:flex; align-items:center; gap:8px;">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <span class="pos-badge">#${idx + 1}</span>
               <span style="width:12px; height:12px; border-radius:50%; background:${b.color}; display:inline-block;"></span>
               <strong>${b.name}</strong>
               <span class="badge badge-nm">${b.batteryWh > 0 ? `${b.batteryWh} Wh` : 'Bio-Bike'}</span>
@@ -2636,7 +2694,9 @@
               Gesamt: ${formatKm(totalKm)} &bull; Betriebszeit: ${formatDurationHM(totalH)} &bull; ${b.suspension.hasShock ? 'Fully' : 'Hardtail/Gravel'}
             </div>
           </div>
-          <div style="display:flex; gap:6px; white-space:nowrap;">
+          <div style="display:flex; gap:5px; white-space:nowrap; align-items:center;">
+            <button class="btn btn-move btn-icon" onclick="moveBikeOrder('${b.id}', -1)" ${isFirst ? 'disabled' : ''} title="Position nach oben verschieben">${svgIcon('arrow-up', 'icon-sm')}</button>
+            <button class="btn btn-move btn-icon" onclick="moveBikeOrder('${b.id}', 1)" ${isLast ? 'disabled' : ''} title="Position nach unten verschieben">${svgIcon('arrow-down', 'icon-sm')}</button>
             <button class="btn btn-edit btn-icon" onclick="editBikeEntity('${b.id}')" title="Fahrrad-Eckdaten bearbeiten">${svgIcon('edit', 'icon-sm')}</button>
             <button class="btn btn-danger btn-icon" onclick="deleteBikeEntity('${b.id}')" title="Fahrrad löschen">${svgIcon('trash', 'icon-sm')}</button>
           </div>
@@ -2796,7 +2856,8 @@
   window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('tour-date').value = new Date().toISOString().split('T')[0];
     document.getElementById('maint-date').value = new Date().toISOString().split('T')[0];
-    selectBike(activeBike);
+    const firstOrdered = getOrderedBikes()[0];
+    selectBike(firstOrdered ? firstOrdered.id : 'propain');
     initSupabase();
 
     if ('serviceWorker' in navigator) {

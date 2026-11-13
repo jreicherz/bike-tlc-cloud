@@ -10,15 +10,15 @@
   "orientation": "any",
   "icons": [
     {
-      "src": "./icon-192.png",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2336404c' stroke='%234d5b6b' stroke-width='4'/><g fill='none' stroke='%23ef4444' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'><circle cx='26' cy='68' r='14'/><circle cx='74' cy='68' r='14'/><path d='M26 68l16-28h22l-12 28H26z' stroke='%23f8fafc'/><path d='M58 28h10l6 40' stroke='%23f8fafc'/><path d='M36 40l-4-10h10' stroke='%23f8fafc'/></g></svg>",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "./icon-512.png",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2336404c' stroke='%234d5b6b' stroke-width='4'/><g fill='none' stroke='%23ef4444' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'><circle cx='26' cy='68' r='14'/><circle cx='74' cy='68' r='14'/><path d='M26 68l16-28h22l-12 28H26z' stroke='%23f8fafc'/><path d='M58 28h10l6 40' stroke='%23f8fafc'/><path d='M36 40l-4-10h10' stroke='%23f8fafc'/></g></svg>",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ]

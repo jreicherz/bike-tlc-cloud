@@ -149,6 +149,50 @@
     }
     .card-title { font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
 
+    /* Einklappbare Dropdown-Kachel (z. B. Neue Tour) */
+    .collapsible-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+      transition: color 0.15s ease;
+    }
+    .collapsible-header:hover {
+      color: #fff;
+    }
+    .collapsible-header.open {
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .chevron-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 8px;
+      transition: 0.2s;
+    }
+    .collapsible-header:hover .chevron-indicator {
+      color: var(--text-main);
+      border-color: var(--text-muted);
+    }
+    .chevron-icon {
+      transition: transform 0.25s ease;
+    }
+    .collapsible-header.open .chevron-icon {
+      transform: rotate(180deg);
+    }
+
     /* KPI Boxen & Kompaktes Foto neben den Kilometern */
     .kpi-top-row {
       display: flex;
@@ -323,6 +367,27 @@
       color: var(--text-muted);
       margin-bottom: 8px;
     }
+    .tours-summary-bar strong {
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    /* Einheitliche Formatierung & Schriftgröße der Touren-Liste wie "Tour in Auswahl" */
+    .tours-list-table th {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      padding: 8px 8px;
+    }
+    .tours-list-table td {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      padding: 9px 8px;
+      vertical-align: middle;
+    }
+    .tours-list-table td strong {
+      color: var(--text-main);
+      font-weight: 700;
+    }
 
     /* Lightbox (Vollbild-Foto-Vorschau) */
     .lightbox-overlay {
@@ -435,7 +500,7 @@
 
     /* Professionelle Action-Buttons */
     .btn-icon {
-      width: 32px; height: 32px; padding: 0; border-radius: 7px;
+      width: 30px; height: 30px; padding: 0; border-radius: 7px;
       display: inline-flex; align-items: center; justify-content: center;
     }
     .btn-move { background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border); }
@@ -456,10 +521,10 @@
     tr.editing-row { background: rgba(59, 130, 246, 0.16); }
     .editing-box { border-color: #60a5fa !important; background: rgba(59, 130, 246, 0.12) !important; }
     .badge {
-      padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;
+      padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;
       display: inline-flex; align-items: center; gap: 5px;
     }
-    .badge-nm { background: rgba(59, 130, 246, 0.25); color: #bfdbfe; border: 1px solid rgba(59, 130, 246, 0.45); font-size: 0.82rem; }
+    .badge-nm { background: rgba(59, 130, 246, 0.25); color: #bfdbfe; border: 1px solid rgba(59, 130, 246, 0.45); font-size: 0.8rem; }
     .badge-due { background: rgba(245, 158, 11, 0.25); color: #fde68a; }
     .badge-ok { background: rgba(16, 185, 129, 0.25); color: #a7f3d0; }
     .badge-low { background: rgba(239, 68, 68, 0.25); color: #fca5a5; }
@@ -541,6 +606,7 @@
   <symbol id="i-maximize" viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></symbol>
   <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></symbol>
   <symbol id="i-play" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
 </svg>
 
 <header>
@@ -649,16 +715,22 @@
     </div>
   </section>
 
-  <!-- TAB 2: TOUREN, KOMOOT CLOUD-INBOX & VERBRAUCH -->
+  <!-- TAB 2: TOUREN (EINKLAPPBARES DROPDOWN FÜR NEUE TOUR + VOLLE BREITE FÜR TOURENLISTE) -->
   <section id="tab-tours" class="hidden">
-    <div class="grid-2">
-      <div class="card" id="tour-form-card">
-        <div class="card-header">
-          <div class="card-title" id="tour-form-title">
-            <svg class="icon"><use href="#i-plus"/></svg> Neue Tour, Höhenmeter, Fahrzeit & Akku
-          </div>
+    <!-- EINKLAPPBARE DROPDOWN-KACHEL: NEUE TOUR -->
+    <div class="card" id="tour-form-card">
+      <div class="collapsible-header" id="tour-form-header" onclick="toggleTourFormDropdown()">
+        <div class="card-title" id="tour-form-title">
+          <svg class="icon"><use href="#i-plus"/></svg> Neue Tour, Höhenmeter, Fahrzeit & Akku
         </div>
+        <div class="chevron-indicator">
+          <span id="tour-dropdown-label">Aufklappen</span>
+          <svg class="icon icon-sm chevron-icon"><use href="#i-chevron-down"/></svg>
+        </div>
+      </div>
 
+      <!-- EINGEKLAPPTER FORMULAR-INHALT -->
+      <div id="tour-form-body" class="hidden">
         <!-- KOMOOT DIREKT-SYNC AUSWAHL + LIVE-TRIGGER + GPX FALLBACK -->
         <div class="komoot-import-box">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
@@ -691,16 +763,17 @@
 
         <form onsubmit="saveTour(event)">
           <input type="hidden" id="tour-komoot-id" value="">
-          <label><svg class="icon icon-sm"><use href="#i-bike"/></svg> Fahrrad</label>
-          <select id="tour-bike" onchange="previewTourEnergy()"></select>
-
-          <div class="grid-2" style="gap:10px; margin-top:4px;">
+          <div class="grid-3" style="gap:10px;">
             <div>
-              <label><svg class="icon icon-sm"><use href="#i-calendar"/></svg> Datum</label>
+              <label style="margin-top:0;"><svg class="icon icon-sm"><use href="#i-bike"/></svg> Fahrrad</label>
+              <select id="tour-bike" onchange="previewTourEnergy()"></select>
+            </div>
+            <div>
+              <label style="margin-top:0;"><svg class="icon icon-sm"><use href="#i-calendar"/></svg> Datum</label>
               <input type="date" id="tour-date" required>
             </div>
             <div>
-              <label><svg class="icon icon-sm"><use href="#i-route"/></svg> Gefahrene Distanz (km)</label>
+              <label style="margin-top:0;"><svg class="icon icon-sm"><use href="#i-route"/></svg> Gefahrene Distanz (km)</label>
               <input type="number" id="tour-km" step="0.1" min="0.1" placeholder="z. B. 42.5" oninput="previewTourEnergy()" required>
             </div>
           </div>
@@ -740,7 +813,7 @@
           <div id="tour-energy-preview" class="sag-result-box" style="margin-top:12px;">
             <div>
               <div style="font-size:0.78rem; color:var(--text-muted);">Live-Berechnung: Ø Geschwindigkeit, Verbrauch & 100%-Reichweite</div>
-              <div id="tour-energy-preview-text" style="font-weight:700; font-size:0.95rem; margin-top:2px; color:var(--text-muted);">
+              <div id="tour-energy-preview-text" style="font-weight:700; font-size:0.88rem; margin-top:2px; color:var(--text-muted);">
                 Distanz, Fahrzeit oder Rest-Akku eingeben...
               </div>
             </div>
@@ -766,57 +839,58 @@
           <div id="base-values-list"></div>
         </div>
       </div>
+    </div>
 
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title"><svg class="icon"><use href="#i-list"/></svg> Eingetragene Touren, Ø km/h, HM & Effizienz</div>
+    <!-- TOURENLISTE MIT GLEICHER SCHRIFTGRÖSSE & FORMATIERUNG WIE "TOUR IN AUSWAHL" -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><svg class="icon"><use href="#i-list"/></svg> Eingetragene Touren, Ø km/h, HM & Effizienz</div>
+      </div>
+
+      <!-- FILTER-, SUCH- & SORTIERLEISTE -->
+      <div class="filter-toolbar">
+        <div>
+          <label><svg class="icon icon-sm"><use href="#i-bike"/></svg> Nach Fahrrad filtern</label>
+          <select id="tour-filter-bike" onchange="renderTours()">
+            <option value="all">Alle Fahrräder anzeigen</option>
+          </select>
         </div>
-
-        <!-- FILTER-, SUCH- & SORTIERLEISTE -->
-        <div class="filter-toolbar">
-          <div>
-            <label><svg class="icon icon-sm"><use href="#i-bike"/></svg> Nach Fahrrad filtern</label>
-            <select id="tour-filter-bike" onchange="renderTours()">
-              <option value="all">Alle Fahrräder anzeigen</option>
-            </select>
-          </div>
-          <div>
-            <label><svg class="icon icon-sm"><use href="#i-sliders"/></svg> Sortieren nach</label>
-            <select id="tour-sort-by" onchange="renderTours()">
-              <option value="date_desc">Datum (Neueste zuerst)</option>
-              <option value="date_asc">Datum (Älteste zuerst)</option>
-              <option value="km_desc">Distanz (Längste zuerst)</option>
-              <option value="km_asc">Distanz (Kürzeste zuerst)</option>
-              <option value="hm_desc">Höhenmeter (Meiste zuerst)</option>
-              <option value="hours_desc">Fahrzeit (Längste zuerst)</option>
-              <option value="speed_desc">Ø Tempo (Schnellste zuerst)</option>
-            </select>
-          </div>
-          <div>
-            <label><svg class="icon icon-sm"><use href="#i-search"/></svg> Strecke / Notiz suchen</label>
-            <input type="text" id="tour-search-note" placeholder="Suchbegriff..." oninput="renderTours()">
-          </div>
+        <div>
+          <label><svg class="icon icon-sm"><use href="#i-sliders"/></svg> Sortieren nach</label>
+          <select id="tour-sort-by" onchange="renderTours()">
+            <option value="date_desc">Datum (Neueste zuerst)</option>
+            <option value="date_asc">Datum (Älteste zuerst)</option>
+            <option value="km_desc">Distanz (Längste zuerst)</option>
+            <option value="km_asc">Distanz (Kürzeste zuerst)</option>
+            <option value="hm_desc">Höhenmeter (Meiste zuerst)</option>
+            <option value="hours_desc">Fahrzeit (Längste zuerst)</option>
+            <option value="speed_desc">Ø Tempo (Schnellste zuerst)</option>
+          </select>
         </div>
-
-        <!-- ZUSAMMENFASSUNG DER GEFILTERTEN TOUREN -->
-        <div id="tours-filter-summary" class="tours-summary-bar"></div>
-
-        <div style="overflow-x:auto;">
-          <table>
-            <thead>
-              <tr>
-                <th>Datum</th>
-                <th>Bike</th>
-                <th>Strecke</th>
-                <th>Distanz / Zeit / Ø km/h / HM</th>
-                <th>Rest-Akku</th>
-                <th>Verbrauch & 100%-Reichweite</th>
-                <th style="text-align:right;">Aktion</th>
-              </tr>
-            </thead>
-            <tbody id="tours-table-body"></tbody>
-          </table>
+        <div>
+          <label><svg class="icon icon-sm"><use href="#i-search"/></svg> Strecke / Notiz suchen</label>
+          <input type="text" id="tour-search-note" placeholder="Suchbegriff..." oninput="renderTours()">
         </div>
+      </div>
+
+      <!-- ZUSAMMENFASSUNG DER GEFILTERTEN TOUREN -->
+      <div id="tours-filter-summary" class="tours-summary-bar"></div>
+
+      <div style="overflow-x:auto;">
+        <table class="tours-list-table">
+          <thead>
+            <tr>
+              <th>Datum</th>
+              <th>Bike</th>
+              <th>Strecke</th>
+              <th>Distanz / Zeit / Ø km/h / HM</th>
+              <th>Rest-Akku</th>
+              <th>Verbrauch & 100%-Reichweite</th>
+              <th style="text-align:right;">Aktion</th>
+            </tr>
+          </thead>
+          <tbody id="tours-table-body"></tbody>
+        </table>
       </div>
     </div>
   </section>
@@ -1405,6 +1479,25 @@
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 
+  // Steuert das Auf- und Zuklappen der Kachel "Neue Tour"
+  function toggleTourFormDropdown(forceState) {
+    const body = document.getElementById('tour-form-body');
+    const header = document.getElementById('tour-form-header');
+    const label = document.getElementById('tour-dropdown-label');
+    if (!body || !header) return;
+
+    const shouldOpen = forceState !== undefined ? forceState : body.classList.contains('hidden');
+    if (shouldOpen) {
+      body.classList.remove('hidden');
+      header.classList.add('open');
+      if (label) label.textContent = 'Einklappen';
+    } else {
+      body.classList.add('hidden');
+      header.classList.remove('open');
+      if (label) label.textContent = 'Aufklappen';
+    }
+  }
+
   function getOrderedBikes() {
     const list = Object.values(appData.bikes || {});
     const defaultPriority = { propain: 1, canyon: 2 };
@@ -1500,6 +1593,7 @@
     const kt = inbox[parseInt(idxStr, 10)];
     if (!kt) return;
 
+    toggleTourFormDropdown(true);
     document.getElementById('tour-komoot-id').value = String(kt.komootId || '');
     if (kt.date) document.getElementById('tour-date').value = kt.date;
     document.getElementById('tour-km').value = kt.km || '';
@@ -1607,7 +1701,6 @@
         ghMsg.style.color = '#10b981';
       }
 
-      // Polling: Prüfe alle 5 Sekunden (bis zu 7 Mal = 35 Sek.), ob die neue komootInbox in Supabase angekommen ist
       for (let attempt = 1; attempt <= 7; attempt++) {
         await new Promise(r => setTimeout(r, 5000));
         if (infoEl) infoEl.textContent = `Komoot-Abruf läuft auf GitHub (Prüfung ${attempt}/7)...`;
@@ -2784,6 +2877,7 @@
       const inboxSel = document.getElementById('komoot-inbox-select');
       if (inboxSel) inboxSel.value = '';
       previewTourEnergy();
+      toggleTourFormDropdown(false);
     }
 
     saveData();
@@ -2794,6 +2888,8 @@
     if (!t) return;
 
     editingTourId = id;
+    toggleTourFormDropdown(true);
+
     document.getElementById('tour-komoot-id').value = t.komootId || '';
     document.getElementById('tour-bike').value = t.bike;
     document.getElementById('tour-date').value = t.date;
@@ -2814,6 +2910,7 @@
 
     previewTourEnergy();
     renderTours();
+    document.getElementById('tour-form-card').scrollIntoView({ behavior: 'smooth' });
     document.getElementById('tour-km').focus();
   }
 
@@ -2840,6 +2937,7 @@
     document.getElementById('tour-submit-btn').innerHTML = `${svgIcon('save')} Tour speichern & Zeit/KM addieren`;
     document.getElementById('tour-cancel-btn').classList.add('hidden');
 
+    toggleTourFormDropdown(false);
     previewTourEnergy();
     renderTours();
   }
@@ -2908,14 +3006,15 @@
       return;
     }
 
+    // Gleiche Schriftgröße (0.8rem) und Inline-Formatierung wie in der Leiste "Tour in Auswahl"
     tbody.innerHTML = filtered.map(t => {
       const bikeObj = appData.bikes[t.bike];
       const bName = bikeObj ? bikeObj.name : t.bike;
       const bColor = bikeObj ? bikeObj.color : '#64748b';
       const m = computeTourMetrics(t);
 
-      let battHtml = '<span style="color:var(--text-muted);">-</span>';
-      let effHtml = '<span style="color:var(--text-muted);">-</span>';
+      let battHtml = '<span>-</span>';
+      let effHtml = '<span>-</span>';
 
       if (m.hasBattery) {
         const badgeClass = m.endPct >= 50 ? 'badge-ok' : (m.endPct >= 20 ? 'badge-due' : 'badge-low');
@@ -2926,28 +3025,28 @@
           const whKmStr = m.whPerKm.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
           const rangeStr = Math.round(m.estRange100);
           effHtml = `
-            <div class="inline-meta">${svgIcon('zap', 'icon-sm')} <strong>${whKmStr} Wh/km</strong> <span style="font-size:0.78rem; color:var(--text-muted);">(-${Math.round(m.usedWh)} Wh)</span></div>
-            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;" class="inline-meta">${svgIcon('flag', 'icon-sm')} 100%: <strong>ca. ${rangeStr} km</strong></div>
+            <span class="inline-meta">
+              ${svgIcon('zap', 'icon-sm')} <strong>${whKmStr} Wh/km</strong> (-${Math.round(m.usedWh)} Wh) &nbsp;&bull;&nbsp;
+              ${svgIcon('flag', 'icon-sm')} 100%: <strong>ca. ${rangeStr} km</strong>
+            </span>
           `;
         }
       }
 
       const avgSpeed = formatAvgSpeed(t.km, t.hours);
-      const hoursStr = (t.hours && t.hours > 0) ? `<span class="inline-meta">${svgIcon('clock', 'icon-sm')} ${formatDurationHM(t.hours)}</span>` : '';
-      const speedStr = avgSpeed ? `<span class="inline-meta" style="color:#93c5fd;">${svgIcon('gauge', 'icon-sm')} <strong>Ø ${avgSpeed}</strong></span>` : '';
-      const hmStr = t.hm ? `<span class="inline-meta">${svgIcon('mountain', 'icon-sm')} ${Number(t.hm).toLocaleString('de-DE')} hm</span>` : '';
-      const subMeta = [hoursStr, speedStr, hmStr].filter(Boolean).join(' &bull; ');
+      const distPart = `${svgIcon('route', 'icon-sm')} <strong>+${t.km.toLocaleString('de-DE', {minimumFractionDigits:1})} km</strong>`;
+      const hoursPart = (t.hours && t.hours > 0) ? `${svgIcon('clock', 'icon-sm')} <strong>${formatDurationHM(t.hours)}</strong>` : '';
+      const speedPart = avgSpeed ? `${svgIcon('gauge', 'icon-sm')} Ø <strong>${avgSpeed}</strong>` : '';
+      const hmPart = t.hm ? `${svgIcon('mountain', 'icon-sm')} <strong>${Number(t.hm).toLocaleString('de-DE')} hm</strong>` : '';
+      const statsInline = [distPart, hoursPart, speedPart, hmPart].filter(Boolean).join(' &nbsp;&bull;&nbsp; ');
 
       return `
         <tr class="${editingTourId === t.id ? 'editing-row' : ''}">
-          <td>${t.date}</td>
-          <td><span class="badge" style="background:${bColor};color:#fff;">${bName}</span></td>
-          <td>${t.note}</td>
-          <td>
-            <div><strong>+${t.km.toLocaleString('de-DE', {minimumFractionDigits:1})} km</strong></div>
-            ${subMeta ? `<div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">${subMeta}</div>` : ''}
-          </td>
-          <td>${battHtml}</td>
+          <td style="white-space:nowrap;"><span class="inline-meta">${svgIcon('calendar', 'icon-sm')} <strong>${t.date}</strong></span></td>
+          <td style="white-space:nowrap;"><span class="badge" style="background:${bColor};color:#fff;">${bName}</span></td>
+          <td><strong>${t.note}</strong></td>
+          <td><span class="inline-meta" style="flex-wrap:wrap;">${statsInline}</span></td>
+          <td style="white-space:nowrap;">${battHtml}</td>
           <td>${effHtml}</td>
           <td style="text-align:right; white-space:nowrap;">
             <button class="btn btn-edit btn-icon" onclick="editTour(${t.id})" title="Tour bearbeiten">${svgIcon('edit', 'icon-sm')}</button>

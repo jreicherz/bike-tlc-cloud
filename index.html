@@ -6,7 +6,7 @@
   <title>Bike TLC Pro</title>
   <meta name="theme-color" content="#36404c">
   <link rel="manifest" href="manifest.json">
-  <link id="dynamic-favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2336404c'/><g fill='none' stroke='%23ef4444' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'><circle cx='26' cy='68' r='14'/><circle cx='74' cy='68' r='14'/><path d='M26 68l16-28h22l-12 28H26z' stroke='%23f8fafc'/><path d='M58 28h10l6 40' stroke='%23f8fafc'/><path d='M36 40l-4-10h10' stroke='%23f8fafc'/></g></svg>">
+  <link id="dynamic-favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2336404c'/><g fill='none' stroke='%23b91c1c' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'><circle cx='26' cy='68' r='14'/><circle cx='74' cy='68' r='14'/><path d='M26 68l16-28h22l-12 28H26z' stroke='%23f8fafc'/><path d='M58 28h10l6 40' stroke='%23f8fafc'/><path d='M36 40l-4-10h10' stroke='%23f8fafc'/></g></svg>">
   <link id="dynamic-apple-icon" rel="apple-touch-icon" href="">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -19,12 +19,12 @@
       --text-main: #f8fafc;
       --text-muted: #cbd5e1;
       --border: #4d5b6b;
-      --propain: #ef4444;
-      --canyon: #3b82f6;
-      --accent: #ef4444;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
+      --propain: #b91c1c; /* Dunkleres, sattes Karmesinrot */
+      --canyon: #1d4ed8;  /* Dunkleres, tiefes Königsblau */
+      --accent: #b91c1c;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
       --radius: 12px;
     }
 
@@ -75,18 +75,26 @@
     }
     .sync-badge:hover { border-color: var(--text-muted); color: var(--text-main); }
     .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warning); }
-    .sync-dot.online { background: var(--success); }
+    .sync-dot.online { background: #10b981; }
 
-    /* Bike Umschalter */
+    /* Bike Umschalter (Dynamisch) */
     .bike-switcher {
-      display: flex; gap: 8px; background: var(--bg-input); padding: 4px; border-radius: 10px; border: 1px solid var(--border);
+      display: flex; gap: 6px; background: var(--bg-input); padding: 4px;
+      border-radius: 10px; border: 1px solid var(--border); flex-wrap: wrap; align-items: center;
     }
     .bike-btn {
       border: none; background: transparent; color: var(--text-muted); padding: 8px 14px;
       border-radius: 7px; font-weight: 600; font-size: 0.88rem; cursor: pointer; transition: 0.2s;
+      display: inline-flex; align-items: center; gap: 6px;
     }
-    .bike-btn.active-propain { background: var(--propain); color: #fff; }
-    .bike-btn.active-canyon { background: var(--canyon); color: #fff; }
+    .bike-btn:hover { color: var(--text-main); }
+    .bike-btn.active { color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
+    .bike-add-btn {
+      border: 1px dashed var(--border); background: transparent; color: var(--text-muted);
+      padding: 6px 10px; border-radius: 7px; cursor: pointer; display: inline-flex; align-items: center;
+      gap: 4px; font-size: 0.82rem; font-weight: 600; transition: 0.2s;
+    }
+    .bike-add-btn:hover { color: var(--text-main); border-color: var(--text-muted); background: var(--bg-card); }
 
     /* Navigation */
     nav {
@@ -107,7 +115,7 @@
     /* Layout */
     main { max-width: 1150px; margin: 20px auto; padding: 0 16px; }
     .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; }
-    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
     .card {
       background: var(--bg-card); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 20px; margin-bottom: 18px;
@@ -152,7 +160,22 @@
       width: 100%; padding: 10px 12px; background: var(--bg-input); border: 1px solid var(--border);
       color: var(--text-main); border-radius: 8px; font-size: 0.92rem; margin-top: 4px;
     }
+    input[type="color"] {
+      padding: 4px; height: 42px; cursor: pointer;
+    }
     label { font-size: 0.82rem; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+    .time-input-group {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .time-input-wrap {
+      position: relative;
+    }
+    .time-input-wrap span {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-40%);
+      font-size: 0.78rem; color: var(--text-muted); pointer-events: none; font-weight: 600;
+    }
+    .time-input-wrap input { padding-right: 38px; }
+
     .btn {
       background: var(--accent); color: #fff; border: none; padding: 10px 16px;
       border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem;
@@ -162,8 +185,8 @@
     .btn:hover { opacity: 0.92; }
     .btn:active { transform: scale(0.98); }
     .btn-secondary { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); }
-    
-    /* Professionelle Action-Buttons (Bearbeiten, Bestätigen, Löschen) */
+
+    /* Professionelle Action-Buttons */
     .btn-icon {
       width: 32px; height: 32px; padding: 0; border-radius: 7px;
       display: inline-flex; align-items: center; justify-content: center;
@@ -209,7 +232,15 @@
     .sag-value { font-size: 1.35rem; font-weight: 800; }
 
     .hidden { display: none !important; }
-    .chart-container { position: relative; height: 280px; width: 100%; }
+    .chart-container {
+      position: relative;
+      height: 310px;
+      width: 100%;
+      background: linear-gradient(180deg, rgba(35, 42, 50, 0.45) 0%, rgba(35, 42, 50, 0.85) 100%);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 12px 8px;
+    }
 
     @media (max-width: 640px) {
       header { flex-direction: column; align-items: stretch; }
@@ -268,10 +299,8 @@
     </div>
   </div>
 
-  <div class="bike-switcher">
-    <button id="btn-propain" class="bike-btn active-propain" onclick="selectBike('propain')">Propain Sresh SL</button>
-    <button id="btn-canyon" class="bike-btn" onclick="selectBike('canyon')">Canyon Grizl:ONfly</button>
-  </div>
+  <!-- Dynamischer Fahrrad-Umschalter inkl. + Button -->
+  <div class="bike-switcher" id="bike-switcher-container"></div>
 </header>
 
 <nav>
@@ -291,7 +320,7 @@
     <svg class="icon"><use href="#i-nut"/></svg> Drehmomente (Nm)
   </button>
   <button class="nav-tab" data-tab="specs" onclick="switchTab('specs')">
-    <svg class="icon"><use href="#i-layers"/></svg> Spezifikationen & Fotos
+    <svg class="icon"><use href="#i-layers"/></svg> Spezifikationen & Bikes
   </button>
   <button class="nav-tab" data-tab="settings" onclick="switchTab('settings')">
     <svg class="icon"><use href="#i-cloud"/></svg> Cloud & App-Icon
@@ -301,36 +330,13 @@
 <main>
   <!-- TAB 1: DASHBOARD -->
   <section id="tab-dashboard">
-    <div class="grid-3">
-      <div class="card" style="border-top: 4px solid var(--propain);">
-        <div class="kpi-sub">Propain Sresh SL (580 Wh)</div>
-        <div class="kpi-value" id="kpi-propain-km">804,7 km</div>
-        <div class="kpi-sub" id="kpi-propain-sub">Basis: 804,7 km + 0,0 km Touren</div>
-        <div class="kpi-energy" id="kpi-propain-energy"></div>
-        <div class="kpi-energy" id="kpi-propain-stats"></div>
-      </div>
-      <div class="card" style="border-top: 4px solid var(--canyon);">
-        <div class="kpi-sub">Canyon Grizl:ONfly Daily (400 Wh)</div>
-        <div class="kpi-value" id="kpi-canyon-km">4.148,0 km</div>
-        <div class="kpi-sub" id="kpi-canyon-sub">Basis: 4.148,0 km + 0,0 km Touren</div>
-        <div class="kpi-energy" id="kpi-canyon-energy"></div>
-        <div class="kpi-energy" id="kpi-canyon-stats"></div>
-      </div>
-      <div class="card" style="border-top: 4px solid var(--success);">
-        <div class="kpi-sub">Gesamtbestand (Beide Räder)</div>
-        <div class="kpi-value" id="kpi-total-km">4.952,7 km</div>
-        <div class="kpi-sub" id="kpi-total-tours">0 eingetragene Einzel-Touren</div>
-        <div class="kpi-energy" id="kpi-total-hm-hours"></div>
-        <div class="kpi-energy">
-          <span id="kpi-active-bike-indicator">Aktiv: Propain Sresh SL</span>
-        </div>
-      </div>
-    </div>
+    <div class="grid-3" id="dashboard-kpi-grid"></div>
 
     <div class="grid-2">
       <div class="card">
         <div class="card-header">
           <div class="card-title"><svg class="icon"><use href="#i-chart"/></svg> Kilometer-Vergleich & Gesamtstand</div>
+          <span class="badge badge-nm" id="chart-share-subtitle">Laufleistungs-Verteilung</span>
         </div>
         <div class="chart-container">
           <canvas id="kmBarChart"></canvas>
@@ -359,10 +365,7 @@
         </div>
         <form onsubmit="saveTour(event)">
           <label><svg class="icon icon-sm"><use href="#i-bike"/></svg> Fahrrad</label>
-          <select id="tour-bike" onchange="previewTourEnergy()">
-            <option value="propain">Propain Sresh SL (580 Wh Akku)</option>
-            <option value="canyon">Canyon Grizl:ONfly Daily (400 Wh Akku)</option>
-          </select>
+          <select id="tour-bike" onchange="previewTourEnergy()"></select>
 
           <div class="grid-2" style="gap:10px; margin-top:4px;">
             <div>
@@ -381,8 +384,17 @@
               <input type="number" id="tour-hm" step="1" min="0" placeholder="z. B. 950">
             </div>
             <div>
-              <label><svg class="icon icon-sm"><use href="#i-clock"/></svg> Reine Fahrzeit (Stunden)</label>
-              <input type="number" id="tour-hours" step="0.1" min="0" placeholder="z. B. 2.5 (für 50h/200h Timer)">
+              <label><svg class="icon icon-sm"><use href="#i-clock"/></svg> Reine Fahrzeit (Std. & Min.)</label>
+              <div class="time-input-group">
+                <div class="time-input-wrap">
+                  <input type="number" id="tour-hours-h" step="1" min="0" placeholder="0">
+                  <span>Std.</span>
+                </div>
+                <div class="time-input-wrap">
+                  <input type="number" id="tour-hours-m" step="1" min="0" max="59" placeholder="0">
+                  <span>Min.</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -411,7 +423,7 @@
           <input type="text" id="tour-note" placeholder="z. B. Trail-Runde, Weinbergs-Runde, Hometrails...">
           <div style="display:flex; gap:10px; margin-top:14px;">
             <button type="submit" id="tour-submit-btn" class="btn" style="flex:1;">
-              <svg class="icon"><use href="#i-save"/></svg> Tour speichern & Stunden/KM addieren
+              <svg class="icon"><use href="#i-save"/></svg> Tour speichern & Zeit/KM addieren
             </button>
             <button type="button" id="tour-cancel-btn" class="btn btn-secondary hidden" onclick="cancelTourEdit()">
               <svg class="icon"><use href="#i-x"/></svg> Abbrechen
@@ -419,26 +431,12 @@
           </div>
         </form>
 
+        <!-- Dynamische Basis-Stände für alle Fahrräder -->
         <div style="margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--border);">
-          <div class="card-title" style="font-size:0.95rem; margin-bottom:8px;">Basis-Stände (vor App-Nutzung) anpassen</div>
-          <div class="grid-2" style="gap:10px;">
-            <div>
-              <label>Propain Basis-KM</label>
-              <input type="number" step="0.1" id="base-km-propain" onchange="updateBaseValues()">
-            </div>
-            <div>
-              <label>Canyon Basis-KM</label>
-              <input type="number" step="0.1" id="base-km-canyon" onchange="updateBaseValues()">
-            </div>
-            <div>
-              <label>Propain Basis-Betriebsstunden (h)</label>
-              <input type="number" step="0.5" id="base-hours-propain" onchange="updateBaseValues()">
-            </div>
-            <div>
-              <label>Canyon Basis-Betriebsstunden (h)</label>
-              <input type="number" step="0.5" id="base-hours-canyon" onchange="updateBaseValues()">
-            </div>
+          <div class="card-title" style="font-size:0.95rem; margin-bottom:10px;">
+            <svg class="icon icon-sm"><use href="#i-sliders"/></svg> Basis-Stände (vor App-Nutzung) anpassen
           </div>
+          <div id="base-values-list"></div>
         </div>
       </div>
 
@@ -556,7 +554,6 @@
         <span class="badge badge-ok">O-Ring Abstand in mm messen &rarr; Prozent berechnen</span>
       </div>
       <div class="grid-2">
-        <!-- Gabel SAG Rechner -->
         <div>
           <strong style="font-size:0.95rem;">Gabel-SAG berechnen</strong>
           <div class="dial-grid" style="margin-top:8px;">
@@ -580,7 +577,6 @@
           </div>
         </div>
 
-        <!-- Dämpfer SAG Rechner -->
         <div id="calc-shock-container">
           <strong style="font-size:0.95rem;">Dämpfer-SAG berechnen</strong>
           <div class="dial-grid" style="margin-top:8px;">
@@ -648,8 +644,8 @@
   <section id="tab-maintenance" class="hidden">
     <div class="card" style="border-top: 4px solid var(--accent);">
       <div class="card-header">
-        <div class="card-title"><svg class="icon"><use href="#i-clock"/></svg> RockShox 50h / 200h Fahrwerks-Service-Tracker (<span class="active-bike-name"></span>)</div>
-        <span class="badge badge-nm" id="maint-total-hours-badge">Gesamt-Betriebsstunden: -- h</span>
+        <div class="card-title"><svg class="icon"><use href="#i-clock"/></svg> 50h / 200h Fahrwerks-Service-Tracker (<span class="active-bike-name"></span>)</div>
+        <span class="badge badge-nm" id="maint-total-hours-badge">Gesamt-Betriebszeit: --</span>
       </div>
       <div class="grid-2" id="service-timers-detail"></div>
     </div>
@@ -764,7 +760,7 @@
     </div>
   </section>
 
-  <!-- TAB 6: SPEZIFIKATIONEN & FOTOS -->
+  <!-- TAB 6: SPEZIFIKATIONEN, FOTOS & FAHRRAD-VERWALTUNG -->
   <section id="tab-specs" class="hidden">
     <div class="grid-2">
       <div class="card">
@@ -825,6 +821,95 @@
             </button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- FAHRRAD-VERWALTUNG -->
+    <div class="card" id="bike-manager-card" style="border-top: 4px solid var(--accent);">
+      <div class="card-header">
+        <div class="card-title"><svg class="icon"><use href="#i-bike"/></svg> Fahrrad-Verwaltung (Räder anlegen, bearbeiten & löschen)</div>
+      </div>
+      <div class="grid-2">
+        <div>
+          <strong style="font-size:0.95rem;" id="bike-form-title">Neues Fahrrad anlegen</strong>
+          <form onsubmit="saveBikeEntity(event)" style="margin-top:8px;">
+            <div class="grid-2" style="gap:10px;">
+              <div>
+                <label>Name / Modell des Fahrrads</label>
+                <input type="text" id="bm-name" placeholder="z. B. Specialized Levo / Rennrad" required>
+              </div>
+              <div>
+                <label>Akzentfarbe in der App</label>
+                <input type="color" id="bm-color" value="#059669">
+              </div>
+            </div>
+
+            <div class="grid-2" style="gap:10px;">
+              <div>
+                <label>Akku-Kapazität in Wh (0 = Bio-Bike)</label>
+                <input type="number" id="bm-battery" step="1" min="0" placeholder="z. B. 580 oder 0" value="0">
+              </div>
+              <div>
+                <label>Bisherige Basis-Kilometer (km)</label>
+                <input type="number" id="bm-base-km" step="0.1" min="0" placeholder="0.0" value="0">
+              </div>
+            </div>
+
+            <div class="grid-2" style="gap:10px;">
+              <div>
+                <label>Bisherige Betriebszeit (Std. & Min.)</label>
+                <div class="time-input-group">
+                  <div class="time-input-wrap">
+                    <input type="number" id="bm-base-h" step="1" min="0" placeholder="0" value="0">
+                    <span>Std.</span>
+                  </div>
+                  <div class="time-input-wrap">
+                    <input type="number" id="bm-base-m" step="1" min="0" max="59" placeholder="0" value="0">
+                    <span>Min.</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label>Heckdämpfer vorhanden?</label>
+                <select id="bm-has-shock">
+                  <option value="true">Ja (Fully / mit Dämpfer)</option>
+                  <option value="false">Nein (Hardtail / Gravel / Rennrad)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid-2" style="gap:10px;">
+              <div>
+                <label>Federgabel Modell & Hub (mm)</label>
+                <div style="display:flex; gap:6px;">
+                  <input type="text" id="bm-fork-model" placeholder="z. B. Fox 36 / RockShox" style="flex:1;">
+                  <input type="number" id="bm-fork-travel" placeholder="150" style="width:80px;" title="Gabelhub in mm">
+                </div>
+              </div>
+              <div>
+                <label>Dämpfer Modell & Hub (mm)</label>
+                <div style="display:flex; gap:6px;">
+                  <input type="text" id="bm-shock-model" placeholder="z. B. Super Deluxe" style="flex:1;">
+                  <input type="number" id="bm-shock-stroke" step="0.5" placeholder="55" style="width:80px;" title="Dämpferhub in mm">
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:14px;">
+              <button type="submit" id="bm-submit-btn" class="btn" style="flex:1;">
+                <svg class="icon"><use href="#i-plus"/></svg> Fahrrad hinzufügen
+              </button>
+              <button type="button" id="bm-cancel-btn" class="btn btn-secondary hidden" onclick="cancelBikeEntityEdit()">
+                <svg class="icon"><use href="#i-x"/></svg> Abbrechen
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div>
+          <strong style="font-size:0.95rem;">Angelegte Fahrräder im Bestand</strong>
+          <div id="bike-manager-list" style="margin-top:10px;"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -900,13 +985,42 @@
   let editingMaintId = null;
   let editingTorqueIndex = null;
   let editingSpecIndex = null;
+  let editingBikeEntityId = null;
 
   let kmChart = null;
   let supabaseClient = null;
 
-  // Hilfsfunktion zum Erzeugen von SVG-Icons in dynamischem HTML
   function svgIcon(name, sizeClass = '') {
     return `<svg class="icon ${sizeClass}"><use href="#i-${name}"/></svg>`;
+  }
+
+  // Hex-Farbe in RGBA umwandeln (für weiche Canvas-Verläufe)
+  function hexToRgba(hex, alpha) {
+    let c = (hex || '#1d4ed8').replace('#', '');
+    if (c.length === 3) c = c.split('').map(x => x + x).join('');
+    const num = parseInt(c, 16);
+    const r = (num >> 16) & 255;
+    const g = (num >> 8) & 255;
+    const b = num & 255;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  function decimalHoursToHM(decHours) {
+    const totalMinutes = Math.round((parseFloat(decHours) || 0) * 60);
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
+    return { h, m, totalMinutes };
+  }
+
+  function hmToDecimalHours(h, m) {
+    const hours = Math.max(0, parseInt(h || 0, 10));
+    const mins = Math.max(0, parseInt(m || 0, 10));
+    return hours + (mins / 60);
+  }
+
+  function formatDurationHM(decHours) {
+    const { h, m } = decimalHoursToHM(decHours);
+    return `${h}h ${String(m).padStart(2, '0')}m`;
   }
 
   const defaultSuspensionPropain = {
@@ -967,7 +1081,7 @@
       propain: {
         id: 'propain',
         name: 'Propain Sresh SL',
-        color: '#ef4444',
+        color: '#b91c1c', /* Dunkleres Rot */
         batteryWh: 580,
         baseKm: 804.7,
         baseHours: 42.0,
@@ -1002,7 +1116,7 @@
       canyon: {
         id: 'canyon',
         name: 'Canyon Grizl:ONfly Daily',
-        color: '#3b82f6',
+        color: '#1d4ed8', /* Dunkleres Königsblau */
         batteryWh: 400,
         baseKm: 4148.0,
         baseHours: 165.0,
@@ -1040,22 +1154,35 @@
   let appData = loadLocalData();
 
   function ensureDataIntegrity(data) {
-    if (!data.bikes.propain.suspension) data.bikes.propain.suspension = JSON.parse(JSON.stringify(defaultSuspensionPropain));
-    if (!data.bikes.canyon.suspension) data.bikes.canyon.suspension = JSON.parse(JSON.stringify(defaultSuspensionCanyon));
-    if (!data.bikes.propain.batteryWh) data.bikes.propain.batteryWh = 580;
-    if (!data.bikes.canyon.batteryWh) data.bikes.canyon.batteryWh = 400;
+    if (!data.bikes || Object.keys(data.bikes).length === 0) {
+      data.bikes = JSON.parse(JSON.stringify(defaultData.bikes));
+    }
+    // Automatische Farb-Migration auf das gewünschte dunklere Rot & dunklere Blau
+    if (data.bikes.propain && (data.bikes.propain.color === '#ef4444' || !data.bikes.propain.color)) {
+      data.bikes.propain.color = '#b91c1c';
+    }
+    if (data.bikes.canyon && (data.bikes.canyon.color === '#3b82f6' || !data.bikes.canyon.color)) {
+      data.bikes.canyon.color = '#1d4ed8';
+    }
 
-    if (data.bikes.propain.baseHours === undefined) data.bikes.propain.baseHours = 42.0;
-    if (data.bikes.canyon.baseHours === undefined) data.bikes.canyon.baseHours = 165.0;
-    if (data.bikes.propain.last50hResetAt === undefined) data.bikes.propain.last50hResetAt = 0;
-    if (data.bikes.propain.last200hResetAt === undefined) data.bikes.propain.last200hResetAt = 0;
-    if (data.bikes.canyon.last50hResetAt === undefined) data.bikes.canyon.last50hResetAt = 150.0;
-    if (data.bikes.canyon.last200hResetAt === undefined) data.bikes.canyon.last200hResetAt = 0;
-
-    if (!data.bikes.propain.suspension.forkTravelMm) data.bikes.propain.suspension.forkTravelMm = 160;
-    if (!data.bikes.propain.suspension.shockStrokeMm) data.bikes.propain.suspension.shockStrokeMm = 55;
-    if (!data.bikes.canyon.suspension.forkTravelMm) data.bikes.canyon.suspension.forkTravelMm = 40;
-    if (!data.bikes.canyon.suspension.shockStrokeMm) data.bikes.canyon.suspension.shockStrokeMm = 50;
+    Object.values(data.bikes).forEach(b => {
+      if (!b.suspension) {
+        b.suspension = JSON.parse(JSON.stringify(defaultSuspensionPropain));
+      }
+      if (b.batteryWh === undefined) b.batteryWh = b.id === 'canyon' ? 400 : (b.id === 'propain' ? 580 : 0);
+      if (b.baseKm === undefined) b.baseKm = 0;
+      if (b.baseHours === undefined) b.baseHours = 0;
+      if (b.last50hResetAt === undefined) b.last50hResetAt = 0;
+      if (b.last200hResetAt === undefined) b.last200hResetAt = 0;
+      if (!b.specs) b.specs = [];
+      if (!b.torques) b.torques = [];
+      if (!b.maintenance) b.maintenance = [];
+      if (!b.suspension.forkTravelMm) b.suspension.forkTravelMm = 150;
+      if (!b.suspension.shockStrokeMm) b.suspension.shockStrokeMm = 55;
+    });
+    if (!data.bikes[activeBike]) {
+      activeBike = Object.keys(data.bikes)[0];
+    }
     return data;
   }
 
@@ -1078,7 +1205,8 @@
   }
 
   function computeTourMetrics(tour) {
-    const maxWh = tour.bike === 'propain' ? 580 : 400;
+    const bikeObj = appData.bikes[tour.bike];
+    const maxWh = bikeObj ? (parseFloat(bikeObj.batteryWh) || 0) : 0;
     const km = parseFloat(tour.km || 0);
     const startPct = (tour.batteryStart !== undefined && tour.batteryStart !== null && !isNaN(tour.batteryStart))
       ? Number(tour.batteryStart)
@@ -1087,7 +1215,7 @@
       ? Number(tour.batteryLeft)
       : null;
 
-    if (endPct === null || km <= 0) {
+    if (endPct === null || km <= 0 || maxWh <= 0) {
       return { hasBattery: false, maxWh };
     }
 
@@ -1135,7 +1263,8 @@
   }
 
   function getBikeTotalKm(bikeId) {
-    return parseFloat(appData.bikes[bikeId].baseKm || 0) + getBikeTourKm(bikeId);
+    const b = appData.bikes[bikeId];
+    return (b ? parseFloat(b.baseKm || 0) : 0) + getBikeTourKm(bikeId);
   }
 
   function getBikeTourHm(bikeId) {
@@ -1147,41 +1276,70 @@
   }
 
   function getBikeTotalHours(bikeId) {
-    return parseFloat(appData.bikes[bikeId].baseHours || 0) + getBikeTourHours(bikeId);
+    const b = appData.bikes[bikeId];
+    return (b ? parseFloat(b.baseHours || 0) : 0) + getBikeTourHours(bikeId);
   }
 
   function formatKm(num) {
     return num.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' km';
   }
 
-  function formatHours(num) {
-    return num.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' h';
+  function renderBikeSwitcherAndSelect() {
+    const switcher = document.getElementById('bike-switcher-container');
+    const bikesList = Object.values(appData.bikes);
+
+    switcher.innerHTML = bikesList.map(b => {
+      const isActive = b.id === activeBike;
+      const bgStyle = isActive ? `background:${b.color}; color:#fff;` : '';
+      return `
+        <button class="bike-btn ${isActive ? 'active' : ''}" style="${bgStyle}" onclick="selectBike('${b.id}')">
+          <span style="width:8px; height:8px; border-radius:50%; background:${ isActive ? '#fff' : b.color };"></span>
+          ${b.name}
+        </button>
+      `;
+    }).join('') + `
+      <button class="bike-add-btn" onclick="openAddBikeManager()" title="Weiteres Fahrrad anlegen">
+        ${svgIcon('plus', 'icon-sm')} Rad
+      </button>
+    `;
+
+    const tourSelect = document.getElementById('tour-bike');
+    const prevVal = tourSelect.value;
+    tourSelect.innerHTML = bikesList.map(b => {
+      const whHint = b.batteryWh > 0 ? ` (${b.batteryWh} Wh)` : ' (Bio-Bike)';
+      return `<option value="${b.id}">${b.name}${whHint}</option>`;
+    }).join('');
+
+    if (editingTourId !== null && appData.bikes[prevVal]) {
+      tourSelect.value = prevVal;
+    } else {
+      tourSelect.value = activeBike;
+    }
+  }
+
+  function openAddBikeManager() {
+    switchTab('specs');
+    cancelBikeEntityEdit();
+    const card = document.getElementById('bike-manager-card');
+    if (card) card.scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('bm-name').focus();
   }
 
   function selectBike(bikeId) {
+    if (!appData.bikes[bikeId]) return;
     activeBike = bikeId;
     cancelMaintenanceEdit();
     cancelTorqueEdit();
     cancelSpecEdit();
 
-    const accent = appData.bikes[bikeId].color;
+    const accent = appData.bikes[bikeId].color || '#b91c1c';
     document.documentElement.style.setProperty('--accent', accent);
-
-    document.getElementById('btn-propain').className = 'bike-btn ' + (bikeId === 'propain' ? 'active-propain' : '');
-    document.getElementById('btn-canyon').className = 'bike-btn ' + (bikeId === 'canyon' ? 'active-canyon' : '');
-    if (editingTourId === null) {
-      document.getElementById('tour-bike').value = bikeId;
-    }
-
-    document.querySelectorAll('.active-bike-name').forEach(el => {
-      el.textContent = appData.bikes[bikeId].name;
-    });
 
     document.getElementById('calc-fork-measured').value = '';
     document.getElementById('calc-shock-measured').value = '';
 
-    previewTourEnergy();
     renderAll();
+    previewTourEnergy();
   }
 
   function switchTab(tabId) {
@@ -1197,14 +1355,130 @@
     }
   }
 
+  function renderDashboardKpis() {
+    const grid = document.getElementById('dashboard-kpi-grid');
+    const bikesList = Object.values(appData.bikes);
+
+    let grandTotalKm = 0;
+    let totalHmAll = 0;
+    let totalHoursAll = 0;
+
+    const bikeCardsHtml = bikesList.map(b => {
+      const baseKm = parseFloat(b.baseKm || 0);
+      const tourKm = getBikeTourKm(b.id);
+      const totalKm = baseKm + tourKm;
+      const totalH = getBikeTotalHours(b.id);
+      const tourHm = getBikeTourHm(b.id);
+
+      grandTotalKm += totalKm;
+      totalHmAll += tourHm;
+      totalHoursAll += totalH;
+
+      const eff = getBikeAverageEfficiency(b.id);
+      const whSubtitle = b.batteryWh > 0 ? `${b.name} (${b.batteryWh} Wh)` : `${b.name} (Bio-Bike)`;
+
+      let energyRowHtml = '';
+      if (b.batteryWh > 0) {
+        energyRowHtml = eff
+          ? `<div class="kpi-energy"><span class="inline-meta">${svgIcon('zap', 'icon-sm')} Ø ${eff.avgWhPerKm.toLocaleString('de-DE', {minimumFractionDigits:1, maximumFractionDigits:1})} Wh/km</span><span class="inline-meta">${svgIcon('flag', 'icon-sm')} 100% &approx; ${Math.round(eff.avgRange100)} km</span></div>`
+          : `<div class="kpi-energy"><span class="inline-meta">${svgIcon('zap', 'icon-sm')} Ø Verbrauch: -- Wh/km</span><span class="inline-meta">${svgIcon('flag', 'icon-sm')} Ø 100%: -- km</span></div>`;
+      } else {
+        energyRowHtml = `<div class="kpi-energy"><span class="inline-meta" style="color:var(--text-muted);">${svgIcon('bike', 'icon-sm')} Muskelbetrieb (kein Akku)</span></div>`;
+      }
+
+      return `
+        <div class="card" style="border-top: 4px solid ${b.color}; cursor:pointer;" onclick="selectBike('${b.id}')" title="Klicken, um ${b.name} auszuwählen">
+          <div class="kpi-sub">${whSubtitle}</div>
+          <div class="kpi-value">${formatKm(totalKm)}</div>
+          <div class="kpi-sub">Basis: ${formatKm(baseKm)} + Touren: ${formatKm(tourKm)}</div>
+          ${energyRowHtml}
+          <div class="kpi-energy">
+            <span class="inline-meta">${svgIcon('clock', 'icon-sm')} Zeit: <strong>${formatDurationHM(totalH)}</strong></span>
+            <span class="inline-meta">${svgIcon('mountain', 'icon-sm')} HM: <strong>${tourHm.toLocaleString('de-DE')} hm</strong></span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const totalCardHtml = `
+      <div class="card" style="border-top: 4px solid var(--success);">
+        <div class="kpi-sub">Gesamtbestand (${bikesList.length} ${bikesList.length === 1 ? 'Fahrrad' : 'Fahrräder'})</div>
+        <div class="kpi-value">${formatKm(grandTotalKm)}</div>
+        <div class="kpi-sub">${appData.tours.length} eingetragene Einzel-Touren</div>
+        <div class="kpi-energy">
+          <span class="inline-meta">${svgIcon('clock', 'icon-sm')} Gesamt: <strong>${formatDurationHM(totalHoursAll)}</strong></span>
+          <span class="inline-meta">${svgIcon('mountain', 'icon-sm')} Gesamt-HM: <strong>${totalHmAll.toLocaleString('de-DE')} hm</strong></span>
+        </div>
+        <div class="kpi-energy">
+          <span>Aktiv ausgewählt: <strong>${appData.bikes[activeBike].name}</strong></span>
+        </div>
+      </div>
+    `;
+
+    grid.innerHTML = bikeCardsHtml + totalCardHtml;
+  }
+
+  function renderBaseValuesList() {
+    const container = document.getElementById('base-values-list');
+    const bikesList = Object.values(appData.bikes);
+
+    container.innerHTML = bikesList.map(b => {
+      const hm = decimalHoursToHM(b.baseHours || 0);
+      return `
+        <div style="background:var(--bg-input); border:1px solid var(--border); border-radius:8px; padding:10px 12px; margin-bottom:10px;">
+          <div style="font-weight:700; font-size:0.88rem; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+            <span style="width:10px; height:10px; border-radius:50%; background:${b.color};"></span>
+            ${b.name}
+          </div>
+          <div class="grid-2" style="gap:10px;">
+            <div>
+              <label style="margin-top:0;">Basis-Kilometer (km)</label>
+              <input type="number" step="0.1" value="${parseFloat(b.baseKm || 0)}" onchange="updateSingleBikeBase('${b.id}', 'km', this.value)">
+            </div>
+            <div>
+              <label style="margin-top:0;">Basis-Betriebszeit (Std. & Min.)</label>
+              <div class="time-input-group">
+                <div class="time-input-wrap">
+                  <input type="number" step="1" min="0" id="base-h-${b.id}" value="${hm.h}" onchange="updateSingleBikeBase('${b.id}', 'time')">
+                  <span>Std.</span>
+                </div>
+                <div class="time-input-wrap">
+                  <input type="number" step="1" min="0" max="59" id="base-m-${b.id}" value="${hm.m}" onchange="updateSingleBikeBase('${b.id}', 'time')">
+                  <span>Min.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function updateSingleBikeBase(bikeId, type, val) {
+    const b = appData.bikes[bikeId];
+    if (!b) return;
+    if (type === 'km') {
+      const parsed = parseFloat(val);
+      if (!isNaN(parsed)) b.baseKm = parsed;
+    } else if (type === 'time') {
+      const h = document.getElementById(`base-h-${bikeId}`).value;
+      const m = document.getElementById(`base-m-${bikeId}`).value;
+      b.baseHours = hmToDecimalHours(h, m);
+    }
+    saveData();
+  }
+
   function renderAll() {
     ensureDataIntegrity(appData);
+
+    const currentAccent = appData.bikes[activeBike].color || '#b91c1c';
+    document.documentElement.style.setProperty('--accent', currentAccent);
+
+    renderBikeSwitcherAndSelect();
 
     document.querySelectorAll('.active-bike-name').forEach(el => {
       el.textContent = appData.bikes[activeBike].name;
     });
-
-    document.getElementById('kpi-active-bike-indicator').textContent = `Aktiv ausgewählt: ${appData.bikes[activeBike].name}`;
 
     const iconBox = document.getElementById('app-icon-container');
     if (appData.appIcon) {
@@ -1215,97 +1489,156 @@
       iconBox.innerHTML = svgIcon('bike', 'icon-lg');
     }
 
-    const propainBase = parseFloat(appData.bikes.propain.baseKm);
-    const propainTour = getBikeTourKm('propain');
-    const propainTotal = getBikeTotalKm('propain');
-    const propainHours = getBikeTotalHours('propain');
-    const propainHm = getBikeTourHm('propain');
-
-    const canyonBase = parseFloat(appData.bikes.canyon.baseKm);
-    const canyonTour = getBikeTourKm('canyon');
-    const canyonTotal = getBikeTotalKm('canyon');
-    const canyonHours = getBikeTotalHours('canyon');
-    const canyonHm = getBikeTourHm('canyon');
-
-    const grandTotal = propainTotal + canyonTotal;
-    const totalHmAll = propainHm + canyonHm;
-    const totalHoursAll = propainHours + canyonHours;
-
-    document.getElementById('kpi-propain-km').textContent = formatKm(propainTotal);
-    document.getElementById('kpi-propain-sub').textContent = `Basis: ${formatKm(propainBase)} + Touren: ${formatKm(propainTour)}`;
-
-    document.getElementById('kpi-canyon-km').textContent = formatKm(canyonTotal);
-    document.getElementById('kpi-canyon-sub').textContent = `Basis: ${formatKm(canyonBase)} + Touren: ${formatKm(canyonTour)}`;
-
-    const pEff = getBikeAverageEfficiency('propain');
-    document.getElementById('kpi-propain-energy').innerHTML = pEff
-      ? `<span class="inline-meta">${svgIcon('zap', 'icon-sm')} Ø ${pEff.avgWhPerKm.toLocaleString('de-DE', {minimumFractionDigits:1, maximumFractionDigits:1})} Wh/km</span><span class="inline-meta">${svgIcon('flag', 'icon-sm')} 100% &approx; ${Math.round(pEff.avgRange100)} km</span>`
-      : `<span class="inline-meta">${svgIcon('zap', 'icon-sm')} Ø Verbrauch: -- Wh/km</span><span class="inline-meta">${svgIcon('flag', 'icon-sm')} Ø 100% Reichweite: -- km</span>`;
-
-    document.getElementById('kpi-propain-stats').innerHTML = `<span class="inline-meta">${svgIcon('clock', 'icon-sm')} Betriebsstunden: <strong>${formatHours(propainHours)}</strong></span><span class="inline-meta">${svgIcon('mountain', 'icon-sm')} Touren-HM: <strong>${propainHm.toLocaleString('de-DE')} hm</strong></span>`;
-
-    const cEff = getBikeAverageEfficiency('canyon');
-    document.getElementById('kpi-canyon-energy').innerHTML = cEff
-      ? `<span class="inline-meta">${svgIcon('zap', 'icon-sm')} Ø ${cEff.avgWhPerKm.toLocaleString('de-DE', {minimumFractionDigits:1, maximumFractionDigits:1})} Wh/km</span><span class="inline-meta">${svgIcon('flag', 'icon-sm')} 100% &approx; ${Math.round(cEff.avgRange100)} km</span>`
-      : `<span class="inline-meta">${svgIcon('zap', 'icon-sm')} Ø Verbrauch: -- Wh/km</span><span class="inline-meta">${svgIcon('flag', 'icon-sm')} Ø 100% Reichweite: -- km</span>`;
-
-    document.getElementById('kpi-canyon-stats').innerHTML = `<span class="inline-meta">${svgIcon('clock', 'icon-sm')} Betriebsstunden: <strong>${formatHours(canyonHours)}</strong></span><span class="inline-meta">${svgIcon('mountain', 'icon-sm')} Touren-HM: <strong>${canyonHm.toLocaleString('de-DE')} hm</strong></span>`;
-
-    document.getElementById('kpi-total-km').textContent = formatKm(grandTotal);
-    document.getElementById('kpi-total-tours').textContent = `${appData.tours.length} eingetragene Einzel-Touren`;
-    document.getElementById('kpi-total-hm-hours').innerHTML = `<span class="inline-meta">${svgIcon('clock', 'icon-sm')} Gesamt: <strong>${formatHours(totalHoursAll)}</strong></span><span class="inline-meta">${svgIcon('mountain', 'icon-sm')} Gesamt-HM: <strong>${totalHmAll.toLocaleString('de-DE')} hm</strong></span>`;
-
-    document.getElementById('base-km-propain').value = propainBase;
-    document.getElementById('base-km-canyon').value = canyonBase;
-    document.getElementById('base-hours-propain').value = parseFloat(appData.bikes.propain.baseHours || 0);
-    document.getElementById('base-hours-canyon').value = parseFloat(appData.bikes.canyon.baseHours || 0);
-
+    renderDashboardKpis();
+    renderBaseValuesList();
     renderTours();
     renderSuspension();
     renderServiceTimers();
     renderMaintenance();
     renderTorques();
     renderSpecsAndPhoto();
+    renderBikeManagerList();
     renderChart();
   }
 
+  // Professionelles Balkendiagramm mit Farbverläufen, Direkt-Labels (KM + %) und Detail-Tooltip
   function renderChart() {
-    const ctx = document.getElementById('kmBarChart');
-    if (!ctx) return;
+    const canvas = document.getElementById('kmBarChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
 
-    const pKm = getBikeTotalKm('propain');
-    const cKm = getBikeTotalKm('canyon');
-    const totalKm = pKm + cKm;
+    const bikesList = Object.values(appData.bikes);
+    const labels = bikesList.map(b => b.name);
+    const baseValues = bikesList.map(b => parseFloat(b.baseKm || 0));
+    const tourValues = bikesList.map(b => getBikeTourKm(b.id));
+    const totalValues = bikesList.map((b, i) => baseValues[i] + tourValues[i]);
+    const rawColors = bikesList.map(b => b.color || '#1d4ed8');
+
+    const grandTotalKm = totalValues.reduce((s, v) => s + v, 0);
+    const grandBaseKm = baseValues.reduce((s, v) => s + v, 0);
+    const grandTourKm = tourValues.reduce((s, v) => s + v, 0);
+
+    labels.push('Gesamtbestand');
+    totalValues.push(grandTotalKm);
+    baseValues.push(grandBaseKm);
+    tourValues.push(grandTourKm);
+    rawColors.push('#059669'); // Sattes Smaragdgrün für den Gesamtstand
+
+    // Vertikale Canvas-Farbverläufe für edle Optik
+    const bgGradients = rawColors.map(hex => {
+      const grad = ctx.createLinearGradient(0, 0, 0, 280);
+      grad.addColorStop(0, hexToRgba(hex, 0.95));
+      grad.addColorStop(1, hexToRgba(hex, 0.28));
+      return grad;
+    });
+
+    // Eigenes Plugin für gestochen scharfe Wert- & Prozent-Labels über jedem Balken
+    const topValueLabelsPlugin = {
+      id: 'topValueLabels',
+      afterDatasetsDraw(chart) {
+        const { ctx: c } = chart;
+        c.save();
+        const meta = chart.getDatasetMeta(0);
+        meta.data.forEach((bar, index) => {
+          const val = totalValues[index];
+          const isTotalBar = index === totalValues.length - 1;
+          const pct = (!isTotalBar && grandTotalKm > 0) ? Math.round((val / grandTotalKm) * 100) : null;
+
+          const kmText = val.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' km';
+          const subText = pct !== null ? `${pct}% Anteil` : '100% Gesamt';
+
+          c.textAlign = 'center';
+          c.textBaseline = 'bottom';
+
+          // Hauptwert (KM)
+          c.font = '700 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+          c.fillStyle = '#f8fafc';
+          c.fillText(kmText, bar.x, bar.y - 18);
+
+          // Subwert (Prozentanteil)
+          c.font = '600 10.5px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+          c.fillStyle = '#cbd5e1';
+          c.fillText(subText, bar.x, bar.y - 4);
+        });
+        c.restore();
+      }
+    };
+
+    const maxVal = Math.max(...totalValues, 100);
 
     if (kmChart) kmChart.destroy();
     kmChart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: ['Propain Sresh SL', 'Canyon Grizl:ONfly', 'Gesamtkilometer'],
+        labels,
         datasets: [{
-          label: 'Kilometerstand (km)',
-          data: [pKm, cKm, totalKm],
-          backgroundColor: ['rgba(239, 68, 68, 0.85)', 'rgba(59, 130, 246, 0.85)', 'rgba(16, 185, 129, 0.85)'],
-          borderColor: ['#ef4444', '#3b82f6', '#10b981'],
+          label: 'Laufleistung',
+          data: totalValues,
+          backgroundColor: bgGradients,
+          borderColor: rawColors,
           borderWidth: 2,
-          borderRadius: 8
+          borderRadius: { topLeft: 8, topRight: 8, bottomLeft: 2, bottomRight: 2 },
+          borderSkipped: false,
+          maxBarThickness: 64
         }]
       },
+      plugins: [topValueLabelsPlugin],
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+          padding: { top: 34, right: 10, left: 4, bottom: 0 }
+        },
         plugins: {
-          legend: { display: false }
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(25, 30, 36, 0.96)',
+            titleColor: '#f8fafc',
+            bodyColor: '#cbd5e1',
+            borderColor: '#4d5b6b',
+            borderWidth: 1,
+            padding: 12,
+            cornerRadius: 8,
+            displayColors: true,
+            callbacks: {
+              label(context) {
+                const idx = context.dataIndex;
+                const tot = totalValues[idx].toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+                return ` Gesamt: ${tot} km`;
+              },
+              afterLabel(context) {
+                const idx = context.dataIndex;
+                const bKm = baseValues[idx].toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+                const tKm = tourValues[idx].toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+                return `   • Basis-Stand: ${bKm} km\n   • Gefahrene Touren: +${tKm} km`;
+              }
+            }
+          }
         },
         scales: {
           y: {
             beginAtZero: true,
-            grid: { color: '#4d5b6b' },
-            ticks: { color: '#f8fafc' }
+            suggestedMax: maxVal * 1.18,
+            border: { display: false },
+            grid: {
+              color: 'rgba(203, 213, 225, 0.12)',
+              borderDash: [4, 4]
+            },
+            ticks: {
+              color: '#cbd5e1',
+              font: { size: 11, weight: '500' },
+              callback(value) {
+                return value.toLocaleString('de-DE') + ' km';
+              }
+            }
           },
           x: {
+            border: { color: '#4d5b6b' },
             grid: { display: false },
-            ticks: { color: '#f8fafc', font: { weight: '600' } }
+            ticks: {
+              color: '#f8fafc',
+              font: { size: 12, weight: '700' }
+            }
           }
         }
       }
@@ -1324,22 +1657,22 @@
     const color50 = since50 >= 50 ? 'var(--danger)' : (since50 >= 40 ? 'var(--warning)' : 'var(--success)');
     const color200 = since200 >= 200 ? 'var(--danger)' : (since200 >= 170 ? 'var(--warning)' : 'var(--success)');
 
-    const rem50 = (50 - since50).toFixed(1);
-    const rem200 = (200 - since200).toFixed(1);
+    const rem50 = Math.max(0, 50 - since50);
+    const rem200 = Math.max(0, 200 - since200);
 
-    document.getElementById('maint-total-hours-badge').textContent = `Gesamt-Betriebsstunden: ${formatHours(totalH)}`;
+    document.getElementById('maint-total-hours-badge').textContent = `Gesamt-Betriebszeit: ${formatDurationHM(totalH)}`;
 
     const detailHtml = `
       <div class="service-timer-box">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <strong class="inline-meta">${svgIcon('wrench', 'icon-sm')} 50h Service (Lower Leg / Luftkammer)</strong>
-          <span class="badge" style="background:${color50}; color:#fff;">${since50.toFixed(1)} / 50 h</span>
+          <span class="badge" style="background:${color50}; color:#fff;">${formatDurationHM(since50)} / 50h</span>
         </div>
         <div class="progress-track">
           <div class="progress-fill" style="width:${pct50}%; background:${color50};"></div>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.82rem; color:var(--text-muted); margin-top:6px;">
-          <span class="inline-meta">${since50 >= 50 ? `${svgIcon('alert', 'icon-sm')} Service jetzt fällig!` : `Noch ${rem50} h bis zum nächsten 50h-Service`}</span>
+          <span class="inline-meta">${since50 >= 50 ? `${svgIcon('alert', 'icon-sm')} Service jetzt fällig!` : `Noch ${formatDurationHM(rem50)} bis zum nächsten 50h-Service`}</span>
           <button class="btn btn-success" onclick="resetServiceTimer(50)">${svgIcon('refresh', 'icon-sm')} 50h Reset</button>
         </div>
       </div>
@@ -1347,13 +1680,13 @@
       <div class="service-timer-box">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <strong class="inline-meta">${svgIcon('sliders', 'icon-sm')} 200h Service (Dämpferkartusche & Dichtungen)</strong>
-          <span class="badge" style="background:${color200}; color:#fff;">${since200.toFixed(1)} / 200 h</span>
+          <span class="badge" style="background:${color200}; color:#fff;">${formatDurationHM(since200)} / 200h</span>
         </div>
         <div class="progress-track">
           <div class="progress-fill" style="width:${pct200}%; background:${color200};"></div>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.82rem; color:var(--text-muted); margin-top:6px;">
-          <span class="inline-meta">${since200 >= 200 ? `${svgIcon('alert', 'icon-sm')} Großer Service fällig!` : `Noch ${rem200} h bis zum 200h-Service`}</span>
+          <span class="inline-meta">${since200 >= 200 ? `${svgIcon('alert', 'icon-sm')} Großer Service fällig!` : `Noch ${formatDurationHM(rem200)} bis zum 200h-Service`}</span>
           <button class="btn btn-success" onclick="resetServiceTimer(200)">${svgIcon('refresh', 'icon-sm')} 200h Reset</button>
         </div>
       </div>
@@ -1362,9 +1695,9 @@
 
     document.getElementById('dashboard-service-bars').innerHTML = `
       <div class="service-timer-box" style="padding:10px 12px;">
-        <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
-          <span class="inline-meta">${svgIcon('clock', 'icon-sm')} <strong>50h Fahrwerks-Intervall:</strong> ${since50.toFixed(1)} / 50 h</span>
-          <span><strong>200h Intervall:</strong> ${since200.toFixed(1)} / 200 h</span>
+        <div style="display:flex; justify-content:space-between; font-size:0.82rem; flex-wrap:wrap; gap:6px;">
+          <span class="inline-meta">${svgIcon('clock', 'icon-sm')} <strong>50h Intervall:</strong> ${formatDurationHM(since50)} / 50h</span>
+          <span><strong>200h Intervall:</strong> ${formatDurationHM(since200)} / 200h</span>
         </div>
         <div class="progress-track" style="height:7px; margin:6px 0 2px;">
           <div class="progress-fill" style="width:${pct50}%; background:${color50};"></div>
@@ -1386,8 +1719,8 @@
         status: 'done',
         date: today,
         km: currentKm,
-        title: `50h Fahrwerks-Service durchgeführt (bei ${currentHours.toFixed(1)} h)`,
-        notes: 'Timer auf 0h zurückgesetzt'
+        title: `50h Fahrwerks-Service durchgeführt (bei ${formatDurationHM(currentHours)})`,
+        notes: 'Timer auf 0h 00m zurückgesetzt'
       });
     } else if (intervalType === 200) {
       bike.last200hResetAt = currentHours;
@@ -1397,8 +1730,8 @@
         status: 'done',
         date: today,
         km: currentKm,
-        title: `200h Großer Fahrwerks-Service durchgeführt (bei ${currentHours.toFixed(1)} h)`,
-        notes: '50h & 200h Timer auf 0h zurückgesetzt'
+        title: `200h Großer Fahrwerks-Service durchgeführt (bei ${formatDurationHM(currentHours)})`,
+        notes: '50h & 200h Timer auf 0h 00m zurückgesetzt'
       });
     }
     saveData();
@@ -1406,10 +1739,17 @@
 
   function previewTourEnergy() {
     const bike = document.getElementById('tour-bike').value;
+    const bikeObj = appData.bikes[bike];
     const km = parseFloat(document.getElementById('tour-km').value);
     const startRaw = document.getElementById('tour-battery-start').value;
     const endRaw = document.getElementById('tour-battery').value;
     const previewEl = document.getElementById('tour-energy-preview-text');
+
+    if (bikeObj && (!bikeObj.batteryWh || bikeObj.batteryWh <= 0)) {
+      previewEl.textContent = 'Bio-Bike ohne Akku ausgewählt (keine Wh-Berechnung erforderlich).';
+      previewEl.style.color = 'var(--text-muted)';
+      return;
+    }
 
     if (!km || km <= 0 || endRaw === '') {
       previewEl.textContent = 'KM und Rest-Akku (%) eingeben für Live-Berechnung...';
@@ -1435,22 +1775,23 @@
     const usedWhStr = Math.round(metrics.usedWh);
 
     previewEl.innerHTML = `<span class="inline-meta">${svgIcon('zap', 'icon-sm')} <strong>${whKmStr} Wh/km</strong> (${usedWhStr} Wh verbraucht)</span> &nbsp;&bull;&nbsp; <span class="inline-meta">${svgIcon('flag', 'icon-sm')} 100%-Reichweite: <strong>ca. ${rangeStr} km</strong></span>`;
-    previewEl.style.color = 'var(--success)';
+    previewEl.style.color = '#10b981';
   }
 
-  // 1. TOUREN: Hinzufügen, Bearbeiten & Löschen
+  // 1. TOUREN: Hinzufügen, Bearbeiten & Löschen (mit Std. & Min.)
   function saveTour(e) {
     e.preventDefault();
     const bike = document.getElementById('tour-bike').value;
     const date = document.getElementById('tour-date').value;
     const km = parseFloat(document.getElementById('tour-km').value);
     const hmRaw = document.getElementById('tour-hm').value;
-    const hoursRaw = document.getElementById('tour-hours').value;
+    const hoursH = document.getElementById('tour-hours-h').value;
+    const hoursM = document.getElementById('tour-hours-m').value;
     const startRaw = document.getElementById('tour-battery-start').value;
     const batteryRaw = document.getElementById('tour-battery').value;
 
     const hm = hmRaw !== '' ? Math.max(0, parseInt(hmRaw, 10)) : 0;
-    const hours = hoursRaw !== '' ? Math.max(0, parseFloat(hoursRaw)) : 0;
+    const hours = hmToDecimalHours(hoursH, hoursM);
     const batteryStart = startRaw !== '' ? Math.min(100, Math.max(1, parseInt(startRaw, 10))) : 100;
     const batteryLeft = batteryRaw !== '' ? Math.min(100, Math.max(0, parseInt(batteryRaw, 10))) : null;
     const note = document.getElementById('tour-note').value.trim() || 'Ausfahrt';
@@ -1485,7 +1826,8 @@
       });
       document.getElementById('tour-km').value = '';
       document.getElementById('tour-hm').value = '';
-      document.getElementById('tour-hours').value = '';
+      document.getElementById('tour-hours-h').value = '';
+      document.getElementById('tour-hours-m').value = '';
       document.getElementById('tour-battery-start').value = '100';
       document.getElementById('tour-battery').value = '';
       document.getElementById('tour-note').value = '';
@@ -1504,7 +1846,11 @@
     document.getElementById('tour-date').value = t.date;
     document.getElementById('tour-km').value = t.km;
     document.getElementById('tour-hm').value = t.hm || '';
-    document.getElementById('tour-hours').value = t.hours || '';
+
+    const hmObj = decimalHoursToHM(t.hours || 0);
+    document.getElementById('tour-hours-h').value = hmObj.totalMinutes > 0 ? hmObj.h : '';
+    document.getElementById('tour-hours-m').value = hmObj.totalMinutes > 0 ? hmObj.m : '';
+
     document.getElementById('tour-battery-start').value = t.batteryStart !== undefined ? t.batteryStart : 100;
     document.getElementById('tour-battery').value = (t.batteryLeft !== null && t.batteryLeft !== undefined) ? t.batteryLeft : '';
     document.getElementById('tour-note').value = t.note || '';
@@ -1527,13 +1873,14 @@
     document.getElementById('tour-date').value = new Date().toISOString().split('T')[0];
     kmInput.value = '';
     document.getElementById('tour-hm').value = '';
-    document.getElementById('tour-hours').value = '';
+    document.getElementById('tour-hours-h').value = '';
+    document.getElementById('tour-hours-m').value = '';
     document.getElementById('tour-battery-start').value = '100';
     document.getElementById('tour-battery').value = '';
     document.getElementById('tour-note').value = '';
 
     document.getElementById('tour-form-title').innerHTML = `${svgIcon('plus')} Neue Tour, Höhenmeter, Fahrzeit & Akku`;
-    document.getElementById('tour-submit-btn').innerHTML = `${svgIcon('save')} Tour speichern & Stunden/KM addieren`;
+    document.getElementById('tour-submit-btn').innerHTML = `${svgIcon('save')} Tour speichern & Zeit/KM addieren`;
     document.getElementById('tour-cancel-btn').classList.add('hidden');
 
     previewTourEnergy();
@@ -1548,29 +1895,17 @@
     saveData();
   }
 
-  function updateBaseValues() {
-    const pKm = parseFloat(document.getElementById('base-km-propain').value);
-    const cKm = parseFloat(document.getElementById('base-km-canyon').value);
-    const pHours = parseFloat(document.getElementById('base-hours-propain').value);
-    const cHours = parseFloat(document.getElementById('base-hours-canyon').value);
-
-    if (!isNaN(pKm)) appData.bikes.propain.baseKm = pKm;
-    if (!isNaN(cKm)) appData.bikes.canyon.baseKm = cKm;
-    if (!isNaN(pHours)) appData.bikes.propain.baseHours = pHours;
-    if (!isNaN(cHours)) appData.bikes.canyon.baseHours = cHours;
-    saveData();
-  }
-
   function renderTours() {
     const tbody = document.getElementById('tours-table-body');
     if (appData.tours.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" style="color:var(--text-muted); text-align:center;">Noch keine Einzel-Touren eingetragen. Die Basis-Kilometerstände (804,7 km & 4.148,0 km) sind aktiv.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" style="color:var(--text-muted); text-align:center;">Noch keine Einzel-Touren eingetragen. Die Basis-Kilometerstände sind aktiv.</td></tr>`;
       return;
     }
 
     tbody.innerHTML = appData.tours.map(t => {
-      const bName = t.bike === 'propain' ? 'Propain' : 'Canyon';
-      const bColor = t.bike === 'propain' ? 'var(--propain)' : 'var(--canyon)';
+      const bikeObj = appData.bikes[t.bike];
+      const bName = bikeObj ? bikeObj.name : t.bike;
+      const bColor = bikeObj ? bikeObj.color : '#64748b';
       const m = computeTourMetrics(t);
 
       let battHtml = '<span style="color:var(--text-muted);">-</span>';
@@ -1592,7 +1927,7 @@
       }
 
       const hmStr = t.hm ? `<span class="inline-meta">${svgIcon('mountain', 'icon-sm')} ${Number(t.hm).toLocaleString('de-DE')} hm</span>` : '';
-      const hoursStr = t.hours ? `<span class="inline-meta">${svgIcon('clock', 'icon-sm')} ${Number(t.hours).toLocaleString('de-DE', {minimumFractionDigits:1})} h</span>` : '';
+      const hoursStr = (t.hours && t.hours > 0) ? `<span class="inline-meta">${svgIcon('clock', 'icon-sm')} ${formatDurationHM(t.hours)}</span>` : '';
       const subMeta = [hmStr, hoursStr].filter(Boolean).join(' &bull; ');
 
       return `
@@ -1636,7 +1971,7 @@
     document.getElementById('susp-shock-hsc').value = susp.shockHsc || '';
     document.getElementById('susp-shock-notes').value = susp.shockNotes || '';
 
-    document.getElementById('calc-fork-travel').value = susp.forkTravelMm || (activeBike === 'propain' ? 160 : 40);
+    document.getElementById('calc-fork-travel').value = susp.forkTravelMm || 150;
     document.getElementById('calc-shock-stroke').value = susp.shockStrokeMm || 55;
 
     if (susp.hasShock) {
@@ -1683,7 +2018,7 @@
     if (forkTravel > 0 && !isNaN(forkMeas) && forkMeas >= 0) {
       const pct = (forkMeas / forkTravel) * 100;
       forkResEl.textContent = `${pct.toFixed(1)}% (${forkMeas} mm)`;
-      forkResEl.style.color = (pct >= 14 && pct <= 24) ? 'var(--success)' : 'var(--warning)';
+      forkResEl.style.color = (pct >= 14 && pct <= 24) ? '#10b981' : '#f59e0b';
     } else {
       forkResEl.textContent = '-- %';
       forkResEl.style.color = 'var(--text-main)';
@@ -1696,7 +2031,7 @@
     if (shockStroke > 0 && !isNaN(shockMeas) && shockMeas >= 0) {
       const pct = (shockMeas / shockStroke) * 100;
       shockResEl.textContent = `${pct.toFixed(1)}% (${shockMeas} mm)`;
-      shockResEl.style.color = (pct >= 24 && pct <= 33) ? 'var(--success)' : 'var(--warning)';
+      shockResEl.style.color = (pct >= 24 && pct <= 33) ? '#10b981' : '#f59e0b';
     } else {
       shockResEl.textContent = '-- %';
       shockResEl.style.color = 'var(--text-main)';
@@ -2122,6 +2457,194 @@
     `).join('');
   }
 
+  // 5. FAHRRAD-VERWALTUNG: Weitere Fahrräder anlegen, bearbeiten & löschen
+  function saveBikeEntity(e) {
+    e.preventDefault();
+    const name = document.getElementById('bm-name').value.trim();
+    const color = document.getElementById('bm-color').value || '#059669';
+    const batteryWh = Math.max(0, parseInt(document.getElementById('bm-battery').value || '0', 10));
+    const baseKm = Math.max(0, parseFloat(document.getElementById('bm-base-km').value || '0'));
+    const baseH = document.getElementById('bm-base-h').value;
+    const baseM = document.getElementById('bm-base-m').value;
+    const baseHours = hmToDecimalHours(baseH, baseM);
+    const hasShock = document.getElementById('bm-has-shock').value === 'true';
+    const forkModel = document.getElementById('bm-fork-model').value.trim() || 'Federgabel';
+    const forkTravelMm = parseFloat(document.getElementById('bm-fork-travel').value || '150');
+    const shockModel = document.getElementById('bm-shock-model').value.trim() || (hasShock ? 'Dämpfer' : 'Kein Dämpfer');
+    const shockStrokeMm = parseFloat(document.getElementById('bm-shock-stroke').value || '55');
+
+    if (editingBikeEntityId !== null && appData.bikes[editingBikeEntityId]) {
+      const b = appData.bikes[editingBikeEntityId];
+      b.name = name;
+      b.color = color;
+      b.batteryWh = batteryWh;
+      b.baseKm = baseKm;
+      b.baseHours = baseHours;
+      b.suspension.hasShock = hasShock;
+      b.suspension.forkModel = forkModel;
+      b.suspension.forkTravelMm = forkTravelMm;
+      b.suspension.shockModel = shockModel;
+      b.suspension.shockStrokeMm = shockStrokeMm;
+      cancelBikeEntityEdit();
+    } else {
+      const newId = 'bike_' + Date.now();
+      appData.bikes[newId] = {
+        id: newId,
+        name,
+        color,
+        batteryWh,
+        baseKm,
+        baseHours,
+        last50hResetAt: baseHours,
+        last200hResetAt: baseHours,
+        photo: null,
+        suspension: {
+          forkModel,
+          forkTravelMm,
+          forkPsi: '',
+          forkSag: '',
+          forkTokens: '',
+          forkRebound: '',
+          forkLsc: '',
+          forkHsc: '',
+          forkNotes: '',
+          hasShock,
+          shockModel,
+          shockStrokeMm,
+          shockPsi: '',
+          shockSag: '',
+          shockTokens: '',
+          shockRebound: '',
+          shockLsc: '',
+          shockHsc: '',
+          shockNotes: '',
+          tireFront: '',
+          tireRear: '',
+          riderWeight: '',
+          presets: []
+        },
+        specs: [
+          { cat: 'Federgabel', val: `${forkModel} (${forkTravelMm} mm)` },
+          ...(batteryWh > 0 ? [{ cat: 'Akku', val: `${batteryWh} Wh` }] : [])
+        ],
+        torques: [
+          { part: 'Steckachse Vorne', val: '10 - 12 Nm', note: 'Inbus 6 mm' },
+          { part: 'Steckachse Hinten', val: '12 - 15 Nm', note: 'Inbus 6 mm' },
+          { part: 'Vorbau-Klemmung', val: '5 - 6 Nm', note: 'Drehmomentschlüssel' }
+        ],
+        maintenance: []
+      };
+      activeBike = newId;
+      cancelBikeEntityEdit();
+    }
+
+    saveData();
+  }
+
+  function editBikeEntity(id) {
+    const b = appData.bikes[id];
+    if (!b) return;
+
+    editingBikeEntityId = id;
+    document.getElementById('bm-name').value = b.name || '';
+    document.getElementById('bm-color').value = b.color || '#059669';
+    document.getElementById('bm-battery').value = b.batteryWh || 0;
+    document.getElementById('bm-base-km').value = b.baseKm || 0;
+
+    const hm = decimalHoursToHM(b.baseHours || 0);
+    document.getElementById('bm-base-h').value = hm.h;
+    document.getElementById('bm-base-m').value = hm.m;
+
+    document.getElementById('bm-has-shock').value = b.suspension.hasShock ? 'true' : 'false';
+    document.getElementById('bm-fork-model').value = b.suspension.forkModel || '';
+    document.getElementById('bm-fork-travel').value = b.suspension.forkTravelMm || 150;
+    document.getElementById('bm-shock-model').value = b.suspension.shockModel || '';
+    document.getElementById('bm-shock-stroke').value = b.suspension.shockStrokeMm || 55;
+
+    document.getElementById('bike-form-title').innerHTML = `${svgIcon('edit', 'icon-sm')} Fahrrad "${b.name}" bearbeiten`;
+    document.getElementById('bm-submit-btn').innerHTML = `${svgIcon('check')} Änderung speichern`;
+    document.getElementById('bm-cancel-btn').classList.remove('hidden');
+
+    renderBikeManagerList();
+    document.getElementById('bm-name').focus();
+  }
+
+  function cancelBikeEntityEdit() {
+    editingBikeEntityId = null;
+    const nameInput = document.getElementById('bm-name');
+    if (!nameInput) return;
+
+    nameInput.value = '';
+    document.getElementById('bm-color').value = '#059669';
+    document.getElementById('bm-battery').value = '0';
+    document.getElementById('bm-base-km').value = '0';
+    document.getElementById('bm-base-h').value = '0';
+    document.getElementById('bm-base-m').value = '0';
+    document.getElementById('bm-has-shock').value = 'true';
+    document.getElementById('bm-fork-model').value = '';
+    document.getElementById('bm-fork-travel').value = '';
+    document.getElementById('bm-shock-model').value = '';
+    document.getElementById('bm-shock-stroke').value = '';
+
+    document.getElementById('bike-form-title').textContent = 'Neues Fahrrad anlegen';
+    document.getElementById('bm-submit-btn').innerHTML = `${svgIcon('plus')} Fahrrad hinzufügen`;
+    document.getElementById('bm-cancel-btn').classList.add('hidden');
+
+    renderBikeManagerList();
+  }
+
+  function deleteBikeEntity(id) {
+    const keys = Object.keys(appData.bikes);
+    if (keys.length <= 1) {
+      alert('Mindestens ein Fahrrad muss in der App verbleiben.');
+      return;
+    }
+    const b = appData.bikes[id];
+    if (!confirm(`Möchtest du das Fahrrad "${b.name}" inklusive seiner Wartungen, Drehmomente und Touren wirklich löschen?`)) {
+      return;
+    }
+    delete appData.bikes[id];
+    appData.tours = appData.tours.filter(t => t.bike !== id);
+    if (activeBike === id) {
+      activeBike = Object.keys(appData.bikes)[0];
+    }
+    if (editingBikeEntityId === id) {
+      cancelBikeEntityEdit();
+    }
+    saveData();
+  }
+
+  function renderBikeManagerList() {
+    const container = document.getElementById('bike-manager-list');
+    if (!container) return;
+    const bikesList = Object.values(appData.bikes);
+
+    container.innerHTML = bikesList.map(b => {
+      const totalKm = getBikeTotalKm(b.id);
+      const totalH = getBikeTotalHours(b.id);
+      const isEditing = editingBikeEntityId === b.id;
+
+      return `
+        <div class="${isEditing ? 'editing-box' : ''}" style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-input); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:10px;">
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="width:12px; height:12px; border-radius:50%; background:${b.color}; display:inline-block;"></span>
+              <strong>${b.name}</strong>
+              <span class="badge badge-nm">${b.batteryWh > 0 ? `${b.batteryWh} Wh` : 'Bio-Bike'}</span>
+            </div>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">
+              Gesamt: ${formatKm(totalKm)} &bull; Betriebszeit: ${formatDurationHM(totalH)} &bull; ${b.suspension.hasShock ? 'Fully' : 'Hardtail/Gravel'}
+            </div>
+          </div>
+          <div style="display:flex; gap:6px; white-space:nowrap;">
+            <button class="btn btn-edit btn-icon" onclick="editBikeEntity('${b.id}')" title="Fahrrad-Eckdaten bearbeiten">${svgIcon('edit', 'icon-sm')}</button>
+            <button class="btn btn-danger btn-icon" onclick="deleteBikeEntity('${b.id}')" title="Fahrrad löschen">${svgIcon('trash', 'icon-sm')}</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
   function compressImage(file, maxWidth, callback) {
     const reader = new FileReader();
     reader.onload = function(event) {
@@ -2273,7 +2796,7 @@
   window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('tour-date').value = new Date().toISOString().split('T')[0];
     document.getElementById('maint-date').value = new Date().toISOString().split('T')[0];
-    selectBike('propain');
+    selectBike(activeBike);
     initSupabase();
 
     if ('serviceWorker' in navigator) {

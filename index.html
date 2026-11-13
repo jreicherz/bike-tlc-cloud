@@ -143,57 +143,70 @@
     }
     .card-title { font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
 
-    /* KPI Boxen & Kachel-Foto-Banner */
-    .kpi-value { font-size: 1.85rem; font-weight: 800; margin-top: 4px; }
-    .kpi-sub { font-size: 0.83rem; color: var(--text-muted); margin-top: 2px; }
+    /* KPI Boxen & Kompaktes Foto neben den Kilometern */
+    .kpi-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 4px;
+    }
+    .kpi-main-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .kpi-value { font-size: 1.75rem; font-weight: 800; margin-top: 2px; line-height: 1.2; }
+    .kpi-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
     .kpi-energy {
       margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border);
       font-size: 0.8rem; color: var(--text-main); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px;
     }
-    .kpi-photo-banner {
-      width: 100%;
-      height: 135px;
+    .kpi-side-photo {
+      width: 80px;
+      height: 80px;
       background: var(--bg-input);
-      border-radius: 9px;
-      margin-bottom: 12px;
+      border-radius: 10px;
       overflow: hidden;
       position: relative;
       border: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0;
     }
-    .kpi-photo-banner img {
+    .kpi-side-photo img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       cursor: zoom-in;
-      transition: transform 0.3s ease;
+      transition: transform 0.25s ease;
     }
-    .card:hover .kpi-photo-banner img {
-      transform: scale(1.03);
+    .card:hover .kpi-side-photo img {
+      transform: scale(1.06);
     }
     .kpi-photo-placeholder {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 3px;
       color: var(--text-muted);
-      font-size: 0.78rem;
+      font-size: 0.68rem;
+      font-weight: 600;
       width: 100%;
       height: 100%;
+      text-align: center;
     }
     .kpi-photo-btn {
       position: absolute;
-      top: 8px;
-      right: 8px;
-      background: rgba(25, 30, 36, 0.78);
+      bottom: 4px;
+      right: 4px;
+      background: rgba(25, 30, 36, 0.82);
       color: var(--text-main);
-      border: 1px solid rgba(255,255,255,0.18);
-      border-radius: 7px;
-      width: 30px;
-      height: 30px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      width: 24px;
+      height: 24px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -311,7 +324,7 @@
     }
     .progress-fill { height: 100%; border-radius: 99px; transition: width 0.3s ease; }
 
-    /* Bike Hero & Foto */
+    /* Bike Hero & Foto (im Spezifikations-Tab) */
     .bike-photo-box {
       width: 100%; height: 230px; background: var(--bg-input); border-radius: 10px;
       border: 1px dashed var(--border); display: flex; flex-direction: column;
@@ -529,7 +542,7 @@
 
   <!-- TAB 1: DASHBOARD -->
   <section id="tab-dashboard">
-    <!-- Dynamische Fahrrad-Kacheln inkl. Foto-Anzeige & Lightbox -->
+    <!-- Dynamische Fahrrad-Kacheln mit kompaktem Foto rechts neben den Kilometern -->
     <div class="grid-3" id="dashboard-kpi-grid"></div>
 
     <div class="grid-2">
@@ -599,11 +612,11 @@
               <label><svg class="icon icon-sm"><use href="#i-clock"/></svg> Reine Fahrzeit (Std. & Min.)</label>
               <div class="time-input-group">
                 <div class="time-input-wrap">
-                  <input type="number" id="tour-hours-h" step="1" min="0" placeholder="0">
+                  <input type="number" id="tour-hours-h" step="1" min="0" placeholder="0" oninput="previewTourEnergy()">
                   <span>Std.</span>
                 </div>
                 <div class="time-input-wrap">
-                  <input type="number" id="tour-hours-m" step="1" min="0" max="59" placeholder="0">
+                  <input type="number" id="tour-hours-m" step="1" min="0" max="59" placeholder="0" oninput="previewTourEnergy()">
                   <span>Min.</span>
                 </div>
               </div>
@@ -621,12 +634,12 @@
             </div>
           </div>
 
-          <!-- Live-Vorschau für Wh/km und 100% Reichweite -->
+          <!-- Live-Vorschau für Ø km/h, Wh/km und 100% Reichweite -->
           <div id="tour-energy-preview" class="sag-result-box" style="margin-top:12px;">
             <div>
-              <div style="font-size:0.78rem; color:var(--text-muted);">Berechneter Verbrauch & Reichweite (bei 100% Akku)</div>
+              <div style="font-size:0.78rem; color:var(--text-muted);">Live-Berechnung: Ø Geschwindigkeit, Verbrauch & 100%-Reichweite</div>
               <div id="tour-energy-preview-text" style="font-weight:700; font-size:0.95rem; margin-top:2px; color:var(--text-muted);">
-                KM und Rest-Akku eingeben für Live-Berechnung...
+                Distanz, Fahrzeit oder Rest-Akku eingeben...
               </div>
             </div>
           </div>
@@ -654,7 +667,7 @@
 
       <div class="card">
         <div class="card-header">
-          <div class="card-title"><svg class="icon"><use href="#i-list"/></svg> Eingetragene Touren, HM, Zeit & Effizienz</div>
+          <div class="card-title"><svg class="icon"><use href="#i-list"/></svg> Eingetragene Touren, Ø km/h, HM & Effizienz</div>
         </div>
         <div style="overflow-x:auto;">
           <table>
@@ -663,7 +676,7 @@
                 <th>Datum</th>
                 <th>Bike</th>
                 <th>Strecke</th>
-                <th>Distanz / HM / Zeit</th>
+                <th>Distanz / Zeit / Ø km/h / HM</th>
                 <th>Rest-Akku</th>
                 <th>Verbrauch & 100%-Reichweite</th>
                 <th style="text-align:right;">Aktion</th>
@@ -1273,6 +1286,14 @@
     return `${h}h ${String(m).padStart(2, '0')}m`;
   }
 
+  function formatAvgSpeed(km, decHours) {
+    const d = parseFloat(km || 0);
+    const h = parseFloat(decHours || 0);
+    if (d <= 0 || h <= 0) return null;
+    const avg = d / h;
+    return avg.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' km/h';
+  }
+
   const defaultSuspensionPropain = {
     forkModel: 'RockShox Lyrik Ultimate (160 mm)',
     forkTravelMm: 160,
@@ -1649,7 +1670,6 @@
     }
   });
 
-  // Direkt-Foto-Upload von einer Fahrrad-Kachel auslösen
   function triggerQuickPhotoUpload(event, bikeId) {
     if (event) event.stopPropagation();
     quickPhotoTargetBikeId = bikeId;
@@ -1668,7 +1688,7 @@
     });
   }
 
-  // Dashboard-Kacheln inklusive Foto-Banner & Vollbild-Klick rendern
+  // Dashboard-Kacheln mit kompaktem Foto rechts neben den Kilometern rendern
   function renderDashboardKpis() {
     const grid = document.getElementById('dashboard-kpi-grid');
     const bikesList = getOrderedBikes();
@@ -1683,6 +1703,7 @@
       const totalKm = baseKm + tourKm;
       const totalH = getBikeTotalHours(b.id);
       const totalHm = getBikeTotalHm(b.id);
+      const avgSpeed = formatAvgSpeed(totalKm, totalH);
 
       grandTotalKm += totalKm;
       totalHmAll += totalHm;
@@ -1700,21 +1721,20 @@
         energyRowHtml = `<div class="kpi-energy"><span class="inline-meta" style="color:var(--text-muted);">${svgIcon('bike', 'icon-sm')} Muskelbetrieb (kein Akku)</span></div>`;
       }
 
-      const photoBannerHtml = b.photo
+      const sidePhotoHtml = b.photo
         ? `
-          <div class="kpi-photo-banner" onclick="openPhotoLightbox(event, '${b.id}')" title="Klicken für Vollbild-Ansicht">
+          <div class="kpi-side-photo" onclick="openPhotoLightbox(event, '${b.id}')" title="Klicken für Vollbild-Ansicht">
             <img src="${b.photo}" alt="${b.name}">
-            <span class="kpi-zoom-badge">${svgIcon('maximize', 'icon-sm')} Vollbild</span>
             <button type="button" class="kpi-photo-btn" onclick="triggerQuickPhotoUpload(event, '${b.id}')" title="Foto für ${b.name} ändern">
               ${svgIcon('camera', 'icon-sm')}
             </button>
           </div>
         `
         : `
-          <div class="kpi-photo-banner" style="background: linear-gradient(135deg, ${hexToRgba(b.color, 0.25)}, rgba(35, 42, 50, 0.9));" onclick="triggerQuickPhotoUpload(event, '${b.id}')" title="Klicken, um ein Foto für ${b.name} hochzuladen">
+          <div class="kpi-side-photo" style="background: linear-gradient(135deg, ${hexToRgba(b.color, 0.25)}, rgba(35, 42, 50, 0.9));" onclick="triggerQuickPhotoUpload(event, '${b.id}')" title="Klicken, um ein Foto für ${b.name} hochzuladen">
             <div class="kpi-photo-placeholder">
-              <span style="color:${b.color};">${svgIcon('bike', 'icon-lg')}</span>
-              <span>Foto hinzufügen</span>
+              <span style="color:${b.color};">${svgIcon('bike')}</span>
+              <span>+ Foto</span>
             </div>
             <button type="button" class="kpi-photo-btn" onclick="triggerQuickPhotoUpload(event, '${b.id}')" title="Foto für ${b.name} hochladen">
               ${svgIcon('camera', 'icon-sm')}
@@ -1724,36 +1744,46 @@
 
       return `
         <div class="card" style="border-top: 4px solid ${b.color}; cursor:pointer;" onclick="selectBike('${b.id}')" title="Klicken, um ${b.name} auszuwählen">
-          ${photoBannerHtml}
-          <div class="kpi-sub">${whSubtitle}</div>
-          <div class="kpi-value">${formatKm(totalKm)}</div>
-          <div class="kpi-sub">Basis: ${formatKm(baseKm)} + Touren: ${formatKm(tourKm)}</div>
+          <div class="kpi-top-row">
+            <div class="kpi-main-info">
+              <div class="kpi-sub">${whSubtitle}</div>
+              <div class="kpi-value">${formatKm(totalKm)}</div>
+              <div class="kpi-sub">Basis: ${formatKm(baseKm)} + Touren: ${formatKm(tourKm)}</div>
+            </div>
+            ${sidePhotoHtml}
+          </div>
           ${energyRowHtml}
           <div class="kpi-energy">
-            <span class="inline-meta">${svgIcon('clock', 'icon-sm')} Zeit: <strong>${formatDurationHM(totalH)}</strong></span>
-            <span class="inline-meta">${svgIcon('mountain', 'icon-sm')} HM: <strong>${totalHm.toLocaleString('de-DE')} hm</strong></span>
+            <span class="inline-meta">${svgIcon('clock', 'icon-sm')} <strong>${formatDurationHM(totalH)}</strong></span>
+            <span class="inline-meta">${svgIcon('gauge', 'icon-sm')} Ø <strong>${avgSpeed || '-- km/h'}</strong></span>
+            <span class="inline-meta">${svgIcon('mountain', 'icon-sm')} <strong>${totalHm.toLocaleString('de-DE')} hm</strong></span>
           </div>
         </div>
       `;
     }).join('');
 
+    const fleetAvgSpeed = formatAvgSpeed(grandTotalKm, totalHoursAll);
+
     const totalCardHtml = `
       <div class="card" style="border-top: 4px solid var(--success); display:flex; flex-direction:column; justify-content:space-between;">
-        <div>
-          <div class="kpi-photo-banner" style="background: linear-gradient(135deg, rgba(4, 120, 87, 0.28), rgba(35, 42, 50, 0.9)); cursor:default;">
+        <div class="kpi-top-row">
+          <div class="kpi-main-info">
+            <div class="kpi-sub">Gesamtbestand (${bikesList.length} ${bikesList.length === 1 ? 'Fahrrad' : 'Fahrräder'})</div>
+            <div class="kpi-value">${formatKm(grandTotalKm)}</div>
+            <div class="kpi-sub">${appData.tours.length} eingetragene Einzel-Touren</div>
+          </div>
+          <div class="kpi-side-photo" style="background: linear-gradient(135deg, rgba(4, 120, 87, 0.28), rgba(35, 42, 50, 0.9)); cursor:default;">
             <div class="kpi-photo-placeholder">
-              <span style="color:#10b981;">${svgIcon('chart', 'icon-lg')}</span>
-              <span>Flotten-Gesamtübersicht</span>
+              <span style="color:#10b981;">${svgIcon('chart')}</span>
+              <span>Flotte</span>
             </div>
           </div>
-          <div class="kpi-sub">Gesamtbestand (${bikesList.length} ${bikesList.length === 1 ? 'Fahrrad' : 'Fahrräder'})</div>
-          <div class="kpi-value">${formatKm(grandTotalKm)}</div>
-          <div class="kpi-sub">${appData.tours.length} eingetragene Einzel-Touren</div>
         </div>
         <div>
           <div class="kpi-energy">
-            <span class="inline-meta">${svgIcon('clock', 'icon-sm')} Gesamt: <strong>${formatDurationHM(totalHoursAll)}</strong></span>
-            <span class="inline-meta">${svgIcon('mountain', 'icon-sm')} Gesamt-HM: <strong>${totalHmAll.toLocaleString('de-DE')} hm</strong></span>
+            <span class="inline-meta">${svgIcon('clock', 'icon-sm')} <strong>${formatDurationHM(totalHoursAll)}</strong></span>
+            <span class="inline-meta">${svgIcon('gauge', 'icon-sm')} Ø <strong>${fleetAvgSpeed || '-- km/h'}</strong></span>
+            <span class="inline-meta">${svgIcon('mountain', 'icon-sm')} <strong>${totalHmAll.toLocaleString('de-DE')} hm</strong></span>
           </div>
           <div class="kpi-energy">
             <span>Aktiv ausgewählt: <strong>${appData.bikes[activeBike].name}</strong></span>
@@ -2134,40 +2164,51 @@
     const bike = document.getElementById('tour-bike').value;
     const bikeObj = appData.bikes[bike];
     const km = parseFloat(document.getElementById('tour-km').value);
+    const hoursH = document.getElementById('tour-hours-h').value;
+    const hoursM = document.getElementById('tour-hours-m').value;
+    const decHours = hmToDecimalHours(hoursH, hoursM);
     const startRaw = document.getElementById('tour-battery-start').value;
     const endRaw = document.getElementById('tour-battery').value;
     const previewEl = document.getElementById('tour-energy-preview-text');
 
-    if (bikeObj && (!bikeObj.batteryWh || bikeObj.batteryWh <= 0)) {
-      previewEl.textContent = 'Bio-Bike ohne Akku ausgewählt (keine Wh-Berechnung erforderlich).';
+    const speedStr = formatAvgSpeed(km, decHours);
+    const parts = [];
+
+    if (speedStr) {
+      parts.push(`<span class="inline-meta">${svgIcon('gauge', 'icon-sm')} Ø <strong>${speedStr}</strong></span>`);
+    }
+
+    if (bikeObj && bikeObj.batteryWh > 0 && km > 0 && endRaw !== '') {
+      const metrics = computeTourMetrics({
+        bike,
+        km,
+        batteryStart: startRaw !== '' ? parseInt(startRaw, 10) : 100,
+        batteryLeft: parseInt(endRaw, 10)
+      });
+
+      if (!metrics.hasConsumption) {
+        previewEl.innerHTML = (parts.length ? parts.join(' &nbsp;&bull;&nbsp; ') + ' &nbsp;&bull;&nbsp; ' : '') + 'Start-Akku muss größer als der Rest-Akku sein.';
+        previewEl.style.color = '#f59e0b';
+        return;
+      }
+
+      const whKmStr = metrics.whPerKm.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+      const rangeStr = Math.round(metrics.estRange100);
+      const usedWhStr = Math.round(metrics.usedWh);
+
+      parts.push(`<span class="inline-meta">${svgIcon('zap', 'icon-sm')} <strong>${whKmStr} Wh/km</strong> (-${usedWhStr} Wh)</span>`);
+      parts.push(`<span class="inline-meta">${svgIcon('flag', 'icon-sm')} 100%-Reichweite: <strong>ca. ${rangeStr} km</strong></span>`);
+    }
+
+    if (parts.length === 0) {
+      previewEl.textContent = (bikeObj && (!bikeObj.batteryWh || bikeObj.batteryWh <= 0))
+        ? 'Distanz und Fahrzeit eingeben für Live-Berechnung der Ø Geschwindigkeit...'
+        : 'Distanz, Fahrzeit oder Rest-Akku (%) eingeben für Live-Berechnung...';
       previewEl.style.color = 'var(--text-muted)';
       return;
     }
 
-    if (!km || km <= 0 || endRaw === '') {
-      previewEl.textContent = 'KM und Rest-Akku (%) eingeben für Live-Berechnung...';
-      previewEl.style.color = 'var(--text-muted)';
-      return;
-    }
-
-    const metrics = computeTourMetrics({
-      bike,
-      km,
-      batteryStart: startRaw !== '' ? parseInt(startRaw, 10) : 100,
-      batteryLeft: parseInt(endRaw, 10)
-    });
-
-    if (!metrics.hasConsumption) {
-      previewEl.textContent = 'Start-Akku muss größer als der Rest-Akku sein.';
-      previewEl.style.color = '#f59e0b';
-      return;
-    }
-
-    const whKmStr = metrics.whPerKm.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-    const rangeStr = Math.round(metrics.estRange100);
-    const usedWhStr = Math.round(metrics.usedWh);
-
-    previewEl.innerHTML = `<span class="inline-meta">${svgIcon('zap', 'icon-sm')} <strong>${whKmStr} Wh/km</strong> (${usedWhStr} Wh verbraucht)</span> &nbsp;&bull;&nbsp; <span class="inline-meta">${svgIcon('flag', 'icon-sm')} 100%-Reichweite: <strong>ca. ${rangeStr} km</strong></span>`;
+    previewEl.innerHTML = parts.join(' &nbsp;&bull;&nbsp; ');
     previewEl.style.color = '#10b981';
   }
 
@@ -2319,9 +2360,11 @@
         }
       }
 
-      const hmStr = t.hm ? `<span class="inline-meta">${svgIcon('mountain', 'icon-sm')} ${Number(t.hm).toLocaleString('de-DE')} hm</span>` : '';
+      const avgSpeed = formatAvgSpeed(t.km, t.hours);
       const hoursStr = (t.hours && t.hours > 0) ? `<span class="inline-meta">${svgIcon('clock', 'icon-sm')} ${formatDurationHM(t.hours)}</span>` : '';
-      const subMeta = [hmStr, hoursStr].filter(Boolean).join(' &bull; ');
+      const speedStr = avgSpeed ? `<span class="inline-meta" style="color:#93c5fd;">${svgIcon('gauge', 'icon-sm')} <strong>Ø ${avgSpeed}</strong></span>` : '';
+      const hmStr = t.hm ? `<span class="inline-meta">${svgIcon('mountain', 'icon-sm')} ${Number(t.hm).toLocaleString('de-DE')} hm</span>` : '';
+      const subMeta = [hoursStr, speedStr, hmStr].filter(Boolean).join(' &bull; ');
 
       return `
         <tr class="${editingTourId === t.id ? 'editing-row' : ''}">
@@ -3030,6 +3073,7 @@
       const totalKm = getBikeTotalKm(b.id);
       const totalH = getBikeTotalHours(b.id);
       const totalHm = getBikeTotalHm(b.id);
+      const avgSpeed = formatAvgSpeed(totalKm, totalH);
       const isEditing = editingBikeEntityId === b.id;
       const isFirst = idx === 0;
       const isLast = idx === bikesList.length - 1;
@@ -3059,7 +3103,7 @@
                 <span class="badge badge-nm">${b.batteryWh > 0 ? `${b.batteryWh} Wh` : 'Bio-Bike'}</span>
               </div>
               <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">
-                ${formatKm(totalKm)} &bull; ${formatDurationHM(totalH)} &bull; ${totalHm.toLocaleString('de-DE')} hm &bull; ${b.suspension.hasShock ? 'Fully' : 'Hardtail/Gravel'}
+                ${formatKm(totalKm)} &bull; ${formatDurationHM(totalH)} ${avgSpeed ? `&bull; Ø ${avgSpeed}` : ''} &bull; ${totalHm.toLocaleString('de-DE')} hm &bull; ${b.suspension.hasShock ? 'Fully' : 'Hardtail/Gravel'}
               </div>
             </div>
           </div>

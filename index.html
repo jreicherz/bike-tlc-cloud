@@ -96,6 +96,21 @@
     }
     .bike-add-btn:hover { color: var(--text-main); border-color: var(--text-muted); background: var(--bg-card); }
 
+    /* Diagramm-Umschalter (KM / Zeit / HM) */
+    .chart-mode-switcher {
+      display: inline-flex; gap: 4px; background: var(--bg-input); padding: 3px;
+      border-radius: 8px; border: 1px solid var(--border);
+    }
+    .chart-mode-btn {
+      border: none; background: transparent; color: var(--text-muted); padding: 5px 10px;
+      border-radius: 6px; font-weight: 600; font-size: 0.78rem; cursor: pointer; transition: 0.15s;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .chart-mode-btn:hover { color: var(--text-main); }
+    .chart-mode-btn.active {
+      background: var(--accent); color: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    }
+
     /* Navigation */
     nav {
       max-width: 1150px; margin: 16px auto 0; padding: 0 16px;
@@ -115,7 +130,7 @@
     /* Layout */
     main { max-width: 1150px; margin: 20px auto; padding: 0 16px; }
     .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; }
-    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
     .card {
       background: var(--bg-card); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 20px; margin-bottom: 18px;
@@ -128,12 +143,162 @@
     }
     .card-title { font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
 
-    /* KPI Boxen */
+    /* KPI Boxen & Kachel-Foto-Banner */
     .kpi-value { font-size: 1.85rem; font-weight: 800; margin-top: 4px; }
     .kpi-sub { font-size: 0.83rem; color: var(--text-muted); margin-top: 2px; }
     .kpi-energy {
       margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border);
       font-size: 0.8rem; color: var(--text-main); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px;
+    }
+    .kpi-photo-banner {
+      width: 100%;
+      height: 135px;
+      background: var(--bg-input);
+      border-radius: 9px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .kpi-photo-banner img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      cursor: zoom-in;
+      transition: transform 0.3s ease;
+    }
+    .card:hover .kpi-photo-banner img {
+      transform: scale(1.03);
+    }
+    .kpi-photo-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      width: 100%;
+      height: 100%;
+    }
+    .kpi-photo-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(25, 30, 36, 0.78);
+      color: var(--text-main);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 7px;
+      width: 30px;
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: 0.2s;
+      z-index: 2;
+    }
+    .kpi-photo-btn:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .kpi-zoom-badge {
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      background: rgba(25, 30, 36, 0.75);
+      color: #f8fafc;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      pointer-events: none;
+      backdrop-filter: blur(4px);
+    }
+    .bm-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .bm-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      cursor: zoom-in;
+    }
+
+    /* Lightbox (Vollbild-Foto-Vorschau) */
+    .lightbox-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 19, 24, 0.92);
+      backdrop-filter: blur(6px);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.18s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .lightbox-header {
+      width: 100%;
+      max-width: 1050px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      color: var(--text-main);
+    }
+    .lightbox-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .lightbox-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .lightbox-img-wrapper {
+      max-width: 1050px;
+      max-height: 80vh;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #14181d;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.5);
+    }
+    .lightbox-img-wrapper img {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+      display: block;
     }
 
     /* Fortschrittsbalken für 50h / 200h Service */
@@ -153,7 +318,7 @@
       align-items: center; justify-content: center; overflow: hidden; position: relative;
       margin-bottom: 14px;
     }
-    .bike-photo-box img { width: 100%; height: 100%; object-fit: cover; }
+    .bike-photo-box img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
 
     /* Formulare & Buttons */
     input, select, textarea {
@@ -292,6 +457,7 @@
   <symbol id="i-disc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></symbol>
   <symbol id="i-arrow-up" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></symbol>
   <symbol id="i-arrow-down" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></symbol>
+  <symbol id="i-maximize" viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></symbol>
 </svg>
 
 <header>
@@ -337,15 +503,52 @@
 </nav>
 
 <main>
+  <!-- Versteckter globaler Datei-Dialog für den Direkt-Foto-Upload auf den Fahrrad-Kacheln -->
+  <input type="file" id="quick-card-photo-input" accept="image/*" class="hidden" onchange="handleQuickCardPhotoUpload(event)">
+
+  <!-- VOLLBILD-LIGHTBOX FÜR FAHRRAD-FOTOS -->
+  <div id="photo-lightbox" class="lightbox-overlay hidden" onclick="closePhotoLightbox(event)">
+    <div class="lightbox-header" onclick="event.stopPropagation()">
+      <div class="lightbox-title">
+        <svg class="icon"><use href="#i-camera"/></svg>
+        <span id="lightbox-bike-title">Fahrrad-Foto</span>
+      </div>
+      <div class="lightbox-actions">
+        <button type="button" class="btn btn-secondary" id="lightbox-change-btn">
+          <svg class="icon icon-sm"><use href="#i-upload"/></svg> Foto ändern
+        </button>
+        <button type="button" class="btn btn-danger btn-icon" onclick="closePhotoLightbox()" title="Schließen (Esc)">
+          <svg class="icon"><use href="#i-x"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="lightbox-img-wrapper" onclick="event.stopPropagation()">
+      <img id="lightbox-img" src="" alt="Vollbild Fahrrad-Foto">
+    </div>
+  </div>
+
   <!-- TAB 1: DASHBOARD -->
   <section id="tab-dashboard">
+    <!-- Dynamische Fahrrad-Kacheln inkl. Foto-Anzeige & Lightbox -->
     <div class="grid-3" id="dashboard-kpi-grid"></div>
 
     <div class="grid-2">
       <div class="card">
         <div class="card-header">
-          <div class="card-title"><svg class="icon"><use href="#i-chart"/></svg> Kilometer-Vergleich & Gesamtstand</div>
-          <span class="badge badge-nm" id="chart-share-subtitle">Laufleistungs-Verteilung</span>
+          <div class="card-title" id="chart-main-title">
+            <svg class="icon"><use href="#i-chart"/></svg> Kilometer-Vergleich & Gesamtstand
+          </div>
+          <div class="chart-mode-switcher">
+            <button id="chart-btn-km" class="chart-mode-btn active" onclick="setChartMetric('km')">
+              <svg class="icon icon-sm"><use href="#i-route"/></svg> KM
+            </button>
+            <button id="chart-btn-hours" class="chart-mode-btn" onclick="setChartMetric('hours')">
+              <svg class="icon icon-sm"><use href="#i-clock"/></svg> Zeit
+            </button>
+            <button id="chart-btn-hm" class="chart-mode-btn" onclick="setChartMetric('hm')">
+              <svg class="icon icon-sm"><use href="#i-mountain"/></svg> HM
+            </button>
+          </div>
         </div>
         <div class="chart-container">
           <canvas id="kmBarChart"></canvas>
@@ -853,14 +1056,18 @@
               </div>
             </div>
 
-            <div class="grid-2" style="gap:10px;">
+            <div class="grid-3" style="gap:10px;">
               <div>
-                <label>Akku-Kapazität in Wh (0 = Bio-Bike)</label>
-                <input type="number" id="bm-battery" step="1" min="0" placeholder="z. B. 580 oder 0" value="0">
+                <label>Akku in Wh (0 = Bio)</label>
+                <input type="number" id="bm-battery" step="1" min="0" placeholder="580" value="0">
               </div>
               <div>
-                <label>Bisherige Basis-Kilometer (km)</label>
+                <label>Basis-KM</label>
                 <input type="number" id="bm-base-km" step="0.1" min="0" placeholder="0.0" value="0">
+              </div>
+              <div>
+                <label>Basis-HM (hm)</label>
+                <input type="number" id="bm-base-hm" step="1" min="0" placeholder="0" value="0">
               </div>
             </div>
 
@@ -918,7 +1125,7 @@
         <div>
           <strong style="font-size:0.95rem;">Angelegte Fahrräder & Reihenfolge</strong>
           <p style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">
-            Mit den Pfeilen legst du die Position der Fahrräder im Header, Dashboard und Diagramm frei fest.
+            Mit den Pfeilen legst du die Position der Fahrräder im Header, Dashboard und Diagramm frei fest. Ein Klick auf ein vorhandenes Vorschaubild öffnet die Vollbild-Ansicht.
           </p>
           <div id="bike-manager-list" style="margin-top:10px;"></div>
         </div>
@@ -992,6 +1199,8 @@
   const STORAGE_KEY = 'bike_tlc_pro_state_v1';
   const SB_CONFIG_KEY = 'bike_tlc_supabase_cfg';
   let activeBike = 'propain';
+  let activeChartMetric = 'km'; // 'km' | 'hours' | 'hm'
+  let quickPhotoTargetBikeId = null;
 
   let editingTourId = null;
   let editingMaintId = null;
@@ -1016,7 +1225,6 @@
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 
-  // Liefert alle Fahrräder sortiert nach der benutzerdefinierten sortOrder (Propain startet auf #1)
   function getOrderedBikes() {
     const list = Object.values(appData.bikes || {});
     const defaultPriority = { propain: 1, canyon: 2 };
@@ -1028,7 +1236,6 @@
     });
   }
 
-  // Verschiebt ein Fahrrad um eine Position nach oben (-1) oder unten (+1)
   function moveBikeOrder(bikeId, direction) {
     const ordered = getOrderedBikes();
     const currentIndex = ordered.findIndex(b => b.id === bikeId);
@@ -1037,7 +1244,6 @@
     const targetIndex = currentIndex + direction;
     if (targetIndex < 0 || targetIndex >= ordered.length) return;
 
-    // Positionen im Array tauschen und saubere sortOrder (1, 2, 3...) vergeben
     const temp = ordered[currentIndex];
     ordered[currentIndex] = ordered[targetIndex];
     ordered[targetIndex] = temp;
@@ -1130,6 +1336,7 @@
         batteryWh: 580,
         baseKm: 804.7,
         baseHours: 42.0,
+        baseHm: 0,
         last50hResetAt: 0,
         last200hResetAt: 0,
         photo: null,
@@ -1166,6 +1373,7 @@
         batteryWh: 400,
         baseKm: 4148.0,
         baseHours: 165.0,
+        baseHm: 0,
         last50hResetAt: 150.0,
         last200hResetAt: 0,
         photo: null,
@@ -1223,6 +1431,7 @@
       if (b.batteryWh === undefined) b.batteryWh = b.id === 'canyon' ? 400 : (b.id === 'propain' ? 580 : 0);
       if (b.baseKm === undefined) b.baseKm = 0;
       if (b.baseHours === undefined) b.baseHours = 0;
+      if (b.baseHm === undefined) b.baseHm = 0;
       if (b.last50hResetAt === undefined) b.last50hResetAt = 0;
       if (b.last200hResetAt === undefined) b.last200hResetAt = 0;
       if (!b.specs) b.specs = [];
@@ -1324,6 +1533,11 @@
     return appData.tours.filter(t => t.bike === bikeId).reduce((sum, t) => sum + parseInt(t.hm || 0, 10), 0);
   }
 
+  function getBikeTotalHm(bikeId) {
+    const b = appData.bikes[bikeId];
+    return (b ? parseInt(b.baseHm || 0, 10) : 0) + getBikeTourHm(bikeId);
+  }
+
   function getBikeTourHours(bikeId) {
     return appData.tours.filter(t => t.bike === bikeId).reduce((sum, t) => sum + parseFloat(t.hours || 0), 0);
   }
@@ -1408,6 +1622,53 @@
     }
   }
 
+  // Vollbild-Lightbox öffnen & schließen
+  function openPhotoLightbox(event, bikeId) {
+    if (event) event.stopPropagation();
+    const b = appData.bikes[bikeId];
+    if (!b || !b.photo) return;
+
+    document.getElementById('lightbox-bike-title').textContent = b.name;
+    document.getElementById('lightbox-img').src = b.photo;
+    document.getElementById('lightbox-change-btn').onclick = (ev) => {
+      closePhotoLightbox();
+      triggerQuickPhotoUpload(ev, bikeId);
+    };
+    document.getElementById('photo-lightbox').classList.remove('hidden');
+  }
+
+  function closePhotoLightbox(event) {
+    if (event && event.target && event.target.tagName === 'IMG') return;
+    document.getElementById('photo-lightbox').classList.add('hidden');
+    document.getElementById('lightbox-img').src = '';
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closePhotoLightbox();
+    }
+  });
+
+  // Direkt-Foto-Upload von einer Fahrrad-Kachel auslösen
+  function triggerQuickPhotoUpload(event, bikeId) {
+    if (event) event.stopPropagation();
+    quickPhotoTargetBikeId = bikeId;
+    const input = document.getElementById('quick-card-photo-input');
+    input.value = '';
+    input.click();
+  }
+
+  function handleQuickCardPhotoUpload(e) {
+    const file = e.target.files[0];
+    if (!file || !quickPhotoTargetBikeId || !appData.bikes[quickPhotoTargetBikeId]) return;
+    const targetId = quickPhotoTargetBikeId;
+    compressImage(file, 1000, (dataUrl) => {
+      appData.bikes[targetId].photo = dataUrl;
+      saveData();
+    });
+  }
+
+  // Dashboard-Kacheln inklusive Foto-Banner & Vollbild-Klick rendern
   function renderDashboardKpis() {
     const grid = document.getElementById('dashboard-kpi-grid');
     const bikesList = getOrderedBikes();
@@ -1421,10 +1682,10 @@
       const tourKm = getBikeTourKm(b.id);
       const totalKm = baseKm + tourKm;
       const totalH = getBikeTotalHours(b.id);
-      const tourHm = getBikeTourHm(b.id);
+      const totalHm = getBikeTotalHm(b.id);
 
       grandTotalKm += totalKm;
-      totalHmAll += tourHm;
+      totalHmAll += totalHm;
       totalHoursAll += totalH;
 
       const eff = getBikeAverageEfficiency(b.id);
@@ -1439,31 +1700,64 @@
         energyRowHtml = `<div class="kpi-energy"><span class="inline-meta" style="color:var(--text-muted);">${svgIcon('bike', 'icon-sm')} Muskelbetrieb (kein Akku)</span></div>`;
       }
 
+      const photoBannerHtml = b.photo
+        ? `
+          <div class="kpi-photo-banner" onclick="openPhotoLightbox(event, '${b.id}')" title="Klicken für Vollbild-Ansicht">
+            <img src="${b.photo}" alt="${b.name}">
+            <span class="kpi-zoom-badge">${svgIcon('maximize', 'icon-sm')} Vollbild</span>
+            <button type="button" class="kpi-photo-btn" onclick="triggerQuickPhotoUpload(event, '${b.id}')" title="Foto für ${b.name} ändern">
+              ${svgIcon('camera', 'icon-sm')}
+            </button>
+          </div>
+        `
+        : `
+          <div class="kpi-photo-banner" style="background: linear-gradient(135deg, ${hexToRgba(b.color, 0.25)}, rgba(35, 42, 50, 0.9));" onclick="triggerQuickPhotoUpload(event, '${b.id}')" title="Klicken, um ein Foto für ${b.name} hochzuladen">
+            <div class="kpi-photo-placeholder">
+              <span style="color:${b.color};">${svgIcon('bike', 'icon-lg')}</span>
+              <span>Foto hinzufügen</span>
+            </div>
+            <button type="button" class="kpi-photo-btn" onclick="triggerQuickPhotoUpload(event, '${b.id}')" title="Foto für ${b.name} hochladen">
+              ${svgIcon('camera', 'icon-sm')}
+            </button>
+          </div>
+        `;
+
       return `
         <div class="card" style="border-top: 4px solid ${b.color}; cursor:pointer;" onclick="selectBike('${b.id}')" title="Klicken, um ${b.name} auszuwählen">
+          ${photoBannerHtml}
           <div class="kpi-sub">${whSubtitle}</div>
           <div class="kpi-value">${formatKm(totalKm)}</div>
           <div class="kpi-sub">Basis: ${formatKm(baseKm)} + Touren: ${formatKm(tourKm)}</div>
           ${energyRowHtml}
           <div class="kpi-energy">
             <span class="inline-meta">${svgIcon('clock', 'icon-sm')} Zeit: <strong>${formatDurationHM(totalH)}</strong></span>
-            <span class="inline-meta">${svgIcon('mountain', 'icon-sm')} HM: <strong>${tourHm.toLocaleString('de-DE')} hm</strong></span>
+            <span class="inline-meta">${svgIcon('mountain', 'icon-sm')} HM: <strong>${totalHm.toLocaleString('de-DE')} hm</strong></span>
           </div>
         </div>
       `;
     }).join('');
 
     const totalCardHtml = `
-      <div class="card" style="border-top: 4px solid var(--success);">
-        <div class="kpi-sub">Gesamtbestand (${bikesList.length} ${bikesList.length === 1 ? 'Fahrrad' : 'Fahrräder'})</div>
-        <div class="kpi-value">${formatKm(grandTotalKm)}</div>
-        <div class="kpi-sub">${appData.tours.length} eingetragene Einzel-Touren</div>
-        <div class="kpi-energy">
-          <span class="inline-meta">${svgIcon('clock', 'icon-sm')} Gesamt: <strong>${formatDurationHM(totalHoursAll)}</strong></span>
-          <span class="inline-meta">${svgIcon('mountain', 'icon-sm')} Gesamt-HM: <strong>${totalHmAll.toLocaleString('de-DE')} hm</strong></span>
+      <div class="card" style="border-top: 4px solid var(--success); display:flex; flex-direction:column; justify-content:space-between;">
+        <div>
+          <div class="kpi-photo-banner" style="background: linear-gradient(135deg, rgba(4, 120, 87, 0.28), rgba(35, 42, 50, 0.9)); cursor:default;">
+            <div class="kpi-photo-placeholder">
+              <span style="color:#10b981;">${svgIcon('chart', 'icon-lg')}</span>
+              <span>Flotten-Gesamtübersicht</span>
+            </div>
+          </div>
+          <div class="kpi-sub">Gesamtbestand (${bikesList.length} ${bikesList.length === 1 ? 'Fahrrad' : 'Fahrräder'})</div>
+          <div class="kpi-value">${formatKm(grandTotalKm)}</div>
+          <div class="kpi-sub">${appData.tours.length} eingetragene Einzel-Touren</div>
         </div>
-        <div class="kpi-energy">
-          <span>Aktiv ausgewählt: <strong>${appData.bikes[activeBike].name}</strong></span>
+        <div>
+          <div class="kpi-energy">
+            <span class="inline-meta">${svgIcon('clock', 'icon-sm')} Gesamt: <strong>${formatDurationHM(totalHoursAll)}</strong></span>
+            <span class="inline-meta">${svgIcon('mountain', 'icon-sm')} Gesamt-HM: <strong>${totalHmAll.toLocaleString('de-DE')} hm</strong></span>
+          </div>
+          <div class="kpi-energy">
+            <span>Aktiv ausgewählt: <strong>${appData.bikes[activeBike].name}</strong></span>
+          </div>
         </div>
       </div>
     `;
@@ -1483,13 +1777,17 @@
             <span style="width:10px; height:10px; border-radius:50%; background:${b.color};"></span>
             ${b.name}
           </div>
-          <div class="grid-2" style="gap:10px;">
+          <div class="grid-3" style="gap:10px;">
             <div>
-              <label style="margin-top:0;">Basis-Kilometer (km)</label>
+              <label style="margin-top:0;">Basis-KM (km)</label>
               <input type="number" step="0.1" value="${parseFloat(b.baseKm || 0)}" onchange="updateSingleBikeBase('${b.id}', 'km', this.value)">
             </div>
             <div>
-              <label style="margin-top:0;">Basis-Betriebszeit (Std. & Min.)</label>
+              <label style="margin-top:0;">Basis-HM (hm)</label>
+              <input type="number" step="1" min="0" value="${parseInt(b.baseHm || 0, 10)}" onchange="updateSingleBikeBase('${b.id}', 'hm', this.value)">
+            </div>
+            <div>
+              <label style="margin-top:0;">Basis-Zeit (Std. & Min.)</label>
               <div class="time-input-group">
                 <div class="time-input-wrap">
                   <input type="number" step="1" min="0" id="base-h-${b.id}" value="${hm.h}" onchange="updateSingleBikeBase('${b.id}', 'time')">
@@ -1513,6 +1811,9 @@
     if (type === 'km') {
       const parsed = parseFloat(val);
       if (!isNaN(parsed)) b.baseKm = parsed;
+    } else if (type === 'hm') {
+      const parsed = parseInt(val, 10);
+      if (!isNaN(parsed)) b.baseHm = Math.max(0, parsed);
     } else if (type === 'time') {
       const h = document.getElementById(`base-h-${bikeId}`).value;
       const m = document.getElementById(`base-m-${bikeId}`).value;
@@ -1554,7 +1855,25 @@
     renderChart();
   }
 
-  // Professionelles Balkendiagramm (sortiert gemäß der festgelegten Reihenfolge)
+  function setChartMetric(metric) {
+    activeChartMetric = metric;
+    ['km', 'hours', 'hm'].forEach(m => {
+      const btn = document.getElementById('chart-btn-' + m);
+      if (btn) btn.classList.toggle('active', m === metric);
+    });
+
+    const titleEl = document.getElementById('chart-main-title');
+    if (metric === 'km') {
+      titleEl.innerHTML = `${svgIcon('chart')} Kilometer-Vergleich & Gesamtstand`;
+    } else if (metric === 'hours') {
+      titleEl.innerHTML = `${svgIcon('clock')} Betriebsstunden-Vergleich & Gesamtzeit`;
+    } else {
+      titleEl.innerHTML = `${svgIcon('mountain')} Höhenmeter-Vergleich & Gesamt-HM`;
+    }
+
+    renderChart();
+  }
+
   function renderChart() {
     const canvas = document.getElementById('kmBarChart');
     if (!canvas) return;
@@ -1562,20 +1881,44 @@
 
     const bikesList = getOrderedBikes();
     const labels = bikesList.map(b => b.name);
-    const baseValues = bikesList.map(b => parseFloat(b.baseKm || 0));
-    const tourValues = bikesList.map(b => getBikeTourKm(b.id));
-    const totalValues = bikesList.map((b, i) => baseValues[i] + tourValues[i]);
     const rawColors = bikesList.map(b => b.color || '#1e3a8a');
 
-    const grandTotalKm = totalValues.reduce((s, v) => s + v, 0);
-    const grandBaseKm = baseValues.reduce((s, v) => s + v, 0);
-    const grandTourKm = tourValues.reduce((s, v) => s + v, 0);
+    let baseValues = [];
+    let tourValues = [];
+    let totalValues = [];
+
+    if (activeChartMetric === 'km') {
+      baseValues = bikesList.map(b => parseFloat(b.baseKm || 0));
+      tourValues = bikesList.map(b => getBikeTourKm(b.id));
+    } else if (activeChartMetric === 'hours') {
+      baseValues = bikesList.map(b => parseFloat(b.baseHours || 0));
+      tourValues = bikesList.map(b => getBikeTourHours(b.id));
+    } else {
+      baseValues = bikesList.map(b => parseInt(b.baseHm || 0, 10));
+      tourValues = bikesList.map(b => getBikeTourHm(b.id));
+    }
+
+    totalValues = bikesList.map((b, i) => baseValues[i] + tourValues[i]);
+
+    const grandTotal = totalValues.reduce((s, v) => s + v, 0);
+    const grandBase = baseValues.reduce((s, v) => s + v, 0);
+    const grandTour = tourValues.reduce((s, v) => s + v, 0);
 
     labels.push('Gesamtbestand');
-    totalValues.push(grandTotalKm);
-    baseValues.push(grandBaseKm);
-    tourValues.push(grandTourKm);
+    totalValues.push(grandTotal);
+    baseValues.push(grandBase);
+    tourValues.push(grandTour);
     rawColors.push('#047857');
+
+    const formatMetricValue = (val) => {
+      if (activeChartMetric === 'km') {
+        return val.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' km';
+      } else if (activeChartMetric === 'hours') {
+        return formatDurationHM(val);
+      } else {
+        return Math.round(val).toLocaleString('de-DE') + ' hm';
+      }
+    };
 
     const bgGradients = rawColors.map(hex => {
       const grad = ctx.createLinearGradient(0, 0, 0, 280);
@@ -1593,9 +1936,9 @@
         meta.data.forEach((bar, index) => {
           const val = totalValues[index];
           const isTotalBar = index === totalValues.length - 1;
-          const pct = (!isTotalBar && grandTotalKm > 0) ? Math.round((val / grandTotalKm) * 100) : null;
+          const pct = (!isTotalBar && grandTotal > 0) ? Math.round((val / grandTotal) * 100) : null;
 
-          const kmText = val.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' km';
+          const mainText = formatMetricValue(val);
           const subText = pct !== null ? `${pct}% Anteil` : '100% Gesamt';
 
           c.textAlign = 'center';
@@ -1603,7 +1946,7 @@
 
           c.font = '700 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
           c.fillStyle = '#f8fafc';
-          c.fillText(kmText, bar.x, bar.y - 18);
+          c.fillText(mainText, bar.x, bar.y - 18);
 
           c.font = '600 10.5px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
           c.fillStyle = '#cbd5e1';
@@ -1613,7 +1956,7 @@
       }
     };
 
-    const maxVal = Math.max(...totalValues, 100);
+    const maxVal = Math.max(...totalValues, activeChartMetric === 'hours' ? 10 : 100);
 
     if (kmChart) kmChart.destroy();
     kmChart = new Chart(ctx, {
@@ -1621,7 +1964,7 @@
       data: {
         labels,
         datasets: [{
-          label: 'Laufleistung',
+          label: activeChartMetric === 'km' ? 'Kilometer' : (activeChartMetric === 'hours' ? 'Betriebszeit' : 'Höhenmeter'),
           data: totalValues,
           backgroundColor: bgGradients,
           borderColor: rawColors,
@@ -1652,14 +1995,13 @@
             callbacks: {
               label(context) {
                 const idx = context.dataIndex;
-                const tot = totalValues[idx].toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-                return ` Gesamt: ${tot} km`;
+                return ` Gesamt: ${formatMetricValue(totalValues[idx])}`;
               },
               afterLabel(context) {
                 const idx = context.dataIndex;
-                const bKm = baseValues[idx].toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-                const tKm = tourValues[idx].toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-                return `   • Basis-Stand: ${bKm} km\n   • Gefahrene Touren: +${tKm} km`;
+                const bFormatted = formatMetricValue(baseValues[idx]);
+                const tFormatted = formatMetricValue(tourValues[idx]);
+                return `   • Basis-Stand: ${bFormatted}\n   • Gefahrene Touren: +${tFormatted}`;
               }
             }
           }
@@ -1677,7 +2019,9 @@
               color: '#cbd5e1',
               font: { size: 11, weight: '500' },
               callback(value) {
-                return value.toLocaleString('de-DE') + ' km';
+                if (activeChartMetric === 'km') return value.toLocaleString('de-DE') + ' km';
+                if (activeChartMetric === 'hours') return value.toLocaleString('de-DE') + ' h';
+                return value.toLocaleString('de-DE') + ' hm';
               }
             }
           },
@@ -1947,7 +2291,7 @@
   function renderTours() {
     const tbody = document.getElementById('tours-table-body');
     if (appData.tours.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" style="color:var(--text-muted); text-align:center;">Noch keine Einzel-Touren eingetragen. Die Basis-Kilometerstände sind aktiv.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" style="color:var(--text-muted); text-align:center;">Noch keine Einzel-Touren eingetragen. Die Basis-Stände sind aktiv.</td></tr>`;
       return;
     }
 
@@ -2488,7 +2832,10 @@
     const bike = appData.bikes[activeBike];
     const photoBox = document.getElementById('bike-photo-preview');
     if (bike.photo) {
-      photoBox.innerHTML = `<img src="${bike.photo}" alt="${bike.name}">`;
+      photoBox.innerHTML = `
+        <img src="${bike.photo}" alt="${bike.name}" onclick="openPhotoLightbox(event, '${bike.id}')" title="Klicken für Vollbild-Ansicht">
+        <span class="kpi-zoom-badge">${svgIcon('maximize', 'icon-sm')} Vollbild</span>
+      `;
     } else {
       photoBox.innerHTML = `<span style="color:var(--text-muted); font-size:0.9rem;">Noch kein Foto für ${bike.name} hinterlegt</span>`;
     }
@@ -2513,6 +2860,7 @@
     const color = document.getElementById('bm-color').value || '#047857';
     const batteryWh = Math.max(0, parseInt(document.getElementById('bm-battery').value || '0', 10));
     const baseKm = Math.max(0, parseFloat(document.getElementById('bm-base-km').value || '0'));
+    const baseHm = Math.max(0, parseInt(document.getElementById('bm-base-hm').value || '0', 10));
     const baseH = document.getElementById('bm-base-h').value;
     const baseM = document.getElementById('bm-base-m').value;
     const baseHours = hmToDecimalHours(baseH, baseM);
@@ -2528,6 +2876,7 @@
       b.color = color;
       b.batteryWh = batteryWh;
       b.baseKm = baseKm;
+      b.baseHm = baseHm;
       b.baseHours = baseHours;
       b.suspension.hasShock = hasShock;
       b.suspension.forkModel = forkModel;
@@ -2545,6 +2894,7 @@
         color,
         batteryWh,
         baseKm,
+        baseHm,
         baseHours,
         last50hResetAt: baseHours,
         last200hResetAt: baseHours,
@@ -2601,6 +2951,7 @@
     document.getElementById('bm-color').value = b.color || '#047857';
     document.getElementById('bm-battery').value = b.batteryWh || 0;
     document.getElementById('bm-base-km').value = b.baseKm || 0;
+    document.getElementById('bm-base-hm').value = b.baseHm || 0;
 
     const hm = decimalHoursToHM(b.baseHours || 0);
     document.getElementById('bm-base-h').value = hm.h;
@@ -2629,6 +2980,7 @@
     document.getElementById('bm-color').value = '#047857';
     document.getElementById('bm-battery').value = '0';
     document.getElementById('bm-base-km').value = '0';
+    document.getElementById('bm-base-hm').value = '0';
     document.getElementById('bm-base-h').value = '0';
     document.getElementById('bm-base-m').value = '0';
     document.getElementById('bm-has-shock').value = 'true';
@@ -2677,21 +3029,38 @@
     container.innerHTML = bikesList.map((b, idx) => {
       const totalKm = getBikeTotalKm(b.id);
       const totalH = getBikeTotalHours(b.id);
+      const totalHm = getBikeTotalHm(b.id);
       const isEditing = editingBikeEntityId === b.id;
       const isFirst = idx === 0;
       const isLast = idx === bikesList.length - 1;
 
+      const thumbClickAction = b.photo
+        ? `openPhotoLightbox(event, '${b.id}')`
+        : `triggerQuickPhotoUpload(event, '${b.id}')`;
+      const thumbTitle = b.photo
+        ? `Vollbild-Foto von ${b.name} anzeigen`
+        : `Foto für ${b.name} auswählen`;
+
+      const thumbHtml = b.photo
+        ? `<img src="${b.photo}" alt="${b.name}">`
+        : `<span style="color:${b.color};">${svgIcon('camera', 'icon-sm')}</span>`;
+
       return `
         <div class="${isEditing ? 'editing-box' : ''}" style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-input); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:10px; gap:10px;">
-          <div>
-            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-              <span class="pos-badge">#${idx + 1}</span>
-              <span style="width:12px; height:12px; border-radius:50%; background:${b.color}; display:inline-block;"></span>
-              <strong>${b.name}</strong>
-              <span class="badge badge-nm">${b.batteryWh > 0 ? `${b.batteryWh} Wh` : 'Bio-Bike'}</span>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="bm-thumb" onclick="${thumbClickAction}" title="${thumbTitle}">
+              ${thumbHtml}
             </div>
-            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">
-              Gesamt: ${formatKm(totalKm)} &bull; Betriebszeit: ${formatDurationHM(totalH)} &bull; ${b.suspension.hasShock ? 'Fully' : 'Hardtail/Gravel'}
+            <div>
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span class="pos-badge">#${idx + 1}</span>
+                <span style="width:12px; height:12px; border-radius:50%; background:${b.color}; display:inline-block;"></span>
+                <strong>${b.name}</strong>
+                <span class="badge badge-nm">${b.batteryWh > 0 ? `${b.batteryWh} Wh` : 'Bio-Bike'}</span>
+              </div>
+              <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">
+                ${formatKm(totalKm)} &bull; ${formatDurationHM(totalH)} &bull; ${totalHm.toLocaleString('de-DE')} hm &bull; ${b.suspension.hasShock ? 'Fully' : 'Hardtail/Gravel'}
+              </div>
             </div>
           </div>
           <div style="display:flex; gap:5px; white-space:nowrap; align-items:center;">

@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bike TLC Pro</title>
+  <meta name="theme-color" content="#28303a">
+  <link rel="manifest" href="manifest.json">
+  <link id="dynamic-favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2328303a'/><text y='.9em' x='12' font-size='72'>🚵</text></svg>">
+  <link id="dynamic-apple-icon" rel="apple-touch-icon" href="">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg-main: #1e242b;
+      --bg-card: #28303a;
+      --bg-card-hover: #313b47;
+      --bg-input: #191e24;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #3d4856;
+      --propain: #ef4444;
+      --canyon: #3b82f6;
+      --accent: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg-main); color: var(--text-main); line-height: 1.5; padding-bottom: 80px; }
+
+    /* Header */
+    header {
+      background-color: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand img, .brand .default-icon {
+      width: 40px; height: 40px; border-radius: 10px; object-fit: cover;
+      background: var(--bg-input); display: flex; align-items: center; justify-content: center;
+      font-size: 22px; border: 1px solid var(--border);
+    }
+    .brand h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.3px; }
+    .sync-badge {
+      font-size: 0.78rem; padding: 4px 10px; border-radius: 20px;
+      background: var(--bg-input); color: var(--text-muted); border: 1px solid var(--border);
+      display: flex; align-items: center; gap: 6px; cursor: pointer;
+    }
+    .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warning); }
+    .sync-dot.online { background: var(--success); }
+
+    /* Bike Umschalter */
+    .bike-switcher {
+      display: flex; gap: 8px; background: var(--bg-input); padding: 4px; border-radius: 10px; border: 1px solid var(--border);
+    }
+    .bike-btn {
+      border: none; background: transparent; color: var(--text-muted); padding: 8px 14px;
+      border-radius: 7px; font-weight: 600; font-size: 0.88rem; cursor: pointer; transition: 0.2s;
+    }
+    .bike-btn.active-propain { background: var(--propain); color: #fff; }
+    .bike-btn.active-canyon { background: var(--canyon); color: #fff; }
+
+    /* Navigation */
+    nav {
+      max-width: 1150px; margin: 16px auto 0; padding: 0 16px;
+      display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+    }
+    .nav-tab {
+      background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border);
+      padding: 10px 16px; border-radius: var(--radius); cursor: pointer; font-weight: 600;
+      font-size: 0.9rem; white-space: nowrap; transition: 0.2s;
+    }
+    .nav-tab:hover { background: var(--bg-card-hover); color: var(--text-main); }
+    .nav-tab.active {
+      background: var(--accent); color: #fff; border-color: var(--accent);
+    }
+
+    /* Layout */
+    main { max-width: 1150px; margin: 20px auto; padding: 0 16px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px; margin-bottom: 18px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    .card-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border);
+    }
+    .card-title { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+
+    /* KPI Boxen */
+    .kpi-value { font-size: 1.85rem; font-weight: 800; margin-top: 4px; }
+    .kpi-sub { font-size: 0.83rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* Bike Hero & Foto */
+    .bike-photo-box {
+      width: 100%; height: 230px; background: var(--bg-input); border-radius: 10px;
+      border: 1px dashed var(--border); display: flex; flex-direction: column;
+      align-items: center; justify-content: center; overflow: hidden; position: relative;
+      margin-bottom: 14px;
+    }
+    .bike-photo-box img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-overlay-btn {
+      position: absolute; bottom: 10px; right: 10px;
+      background: rgba(25, 30, 36, 0.85); color: #fff; border: 1px solid var(--border);
+      padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; backdrop-filter: blur(4px);
+    }
+
+    /* Formulare & Buttons */
+    input, select, textarea {
+      width: 100%; padding: 10px 12px; background: var(--bg-input); border: 1px solid var(--border);
+      color: var(--text-main); border-radius: 8px; font-size: 0.92rem; margin-top: 4px;
+    }
+    label { font-size: 0.82rem; color: var(--text-muted); font-weight: 600; display: block; margin-top: 10px; }
+    .btn {
+      background: var(--accent); color: #fff; border: none; padding: 10px 16px;
+      border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-secondary { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); }
+    .btn-danger { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); padding: 5px 10px; font-size: 0.8rem; }
+    .btn-success { background: rgba(16,185,129,0.18); color: #34d399; border: 1px solid rgba(16,185,129,0.35); padding: 5px 10px; font-size: 0.8rem; }
+
+    /* Tabellen & Listen */
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { text-align: left; padding: 11px 10px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    th { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge {
+      padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; display: inline-block;
+    }
+    .badge-nm { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.35); font-size: 0.85rem; }
+    .badge-due { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+    .badge-ok { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+
+    .hidden { display: none !important; }
+    .chart-container { position: relative; height: 280px; width: 100%; }
+
+    @media (max-width: 640px) {
+      header { flex-direction: column; align-items: stretch; }
+      .bike-switcher { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div id="app-icon-container" class="default-icon">🚵</div>
+    <div>
+      <h1>Bike TLC Pro</h1>
+      <div class="sync-badge" onclick="switchTab('settings')">
+        <span id="sync-dot" class="sync-dot"></span>
+        <span id="sync-text">Lokal gespeichert (Cloud-Setup offen)</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bike-switcher">
+    <button id="btn-propain" class="bike-btn active-propain" onclick="selectBike('propain')">Propain Sresh SL</button>
+    <button id="btn-canyon" class="bike-btn" onclick="selectBike('canyon')">Canyon Grizl:ONfly</button>
+  </div>
+</header>
+
+<nav>
+  <button class="nav-tab active" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Übersicht & Grafik</button>
+  <button class="nav-tab" data-tab="tours" onclick="switchTab('tours')">🗺️ Touren & KM</button>
+  <button class="nav-tab" data-tab="maintenance" onclick="switchTab('maintenance')">🔧 Wartungen</button>
+  <button class="nav-tab" data-tab="torques" onclick="switchTab('torques')">🔩 Drehmomente (Nm)</button>
+  <button class="nav-tab" data-tab="specs" onclick="switchTab('specs')">⚙️ Spezifikationen & Fotos</button>
+  <button class="nav-tab" data-tab="settings" onclick="switchTab('settings')">☁️ Cloud & App-Icon</button>
+</nav>
+
+<main>
+  <!-- TAB 1: DASHBOARD -->
+  <section id="tab-dashboard">
+    <div class="grid-3">
+      <div class="card" style="border-top: 4px solid var(--propain);">
+        <div class="kpi-sub">Propain Sresh SL</div>
+        <div class="kpi-value" id="kpi-propain-km">804,7 km</div>
+        <div class="kpi-sub" id="kpi-propain-sub">Basis: 804,7 km + 0,0 km Touren</div>
+      </div>
+      <div class="card" style="border-top: 4px solid var(--canyon);">
+        <div class="kpi-sub">Canyon Grizl:ONfly Daily</div>
+        <div class="kpi-value" id="kpi-canyon-km">4.148,0 km</div>
+        <div class="kpi-sub" id="kpi-canyon-sub">Basis: 4.148,0 km + 0,0 km Touren</div>
+      </div>
+      <div class="card" style="border-top: 4px solid var(--success);">
+        <div class="kpi-sub">Gesamtkilometer (Beide Räder)</div>
+        <div class="kpi-value" id="kpi-total-km">4.952,7 km</div>
+        <div class="kpi-sub" id="kpi-total-tours">0 eingetragene Einzel-Touren</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📈 Kilometer-Vergleich & Gesamtstand</div>
+        </div>
+        <div class="chart-container">
+          <canvas id="kmBarChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">⏳ Nächste anstehende Wartungen (<span class="active-bike-name"></span>)</div>
+          <button class="btn btn-secondary" onclick="switchTab('maintenance')">Alle öffnen</button>
+        </div>
+        <div id="dashboard-upcoming-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 2: TOUREN -->
+  <section id="tab-tours" class="hidden">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">➕ Neue Tour eintragen</div>
+        </div>
+        <form onsubmit="addTour(event)">
+          <label>Fahrrad</label>
+          <select id="tour-bike">
+            <option value="propain">Propain Sresh SL</option>
+            <option value="canyon">Canyon Grizl:ONfly Daily</option>
+          </select>
+          <div class="grid-2" style="gap:10px; margin-top:4px;">
+            <div>
+              <label>Datum</label>
+              <input type="date" id="tour-date" required>
+            </div>
+            <div>
+              <label>Gefahrene Kilometer (km)</label>
+              <input type="number" id="tour-km" step="0.1" min="0.1" placeholder="z. B. 42.5" required>
+            </div>
+          </div>
+          <label>Strecke / Notiz (optional)</label>
+          <input type="text" id="tour-note" placeholder="z. B. Trail-Runde, Mosel-Tour, Höhenmeter...">
+          <button type="submit" class="btn" style="margin-top:14px; width:100%;">Tour speichern & KM addieren</button>
+        </form>
+
+        <div style="margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--border);">
+          <div class="card-title" style="font-size:0.95rem; margin-bottom:8px;">Basis-Kilometerstand anpassen</div>
+          <div class="grid-2" style="gap:10px;">
+            <div>
+              <label>Propain Start-KM</label>
+              <input type="number" step="0.1" id="base-km-propain" onchange="updateBaseKm()">
+            </div>
+            <div>
+              <label>Canyon Start-KM</label>
+              <input type="number" step="0.1" id="base-km-canyon" onchange="updateBaseKm()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 Eingetragene Touren</div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Datum</th>
+                <th>Bike</th>
+                <th>Strecke / Notiz</th>
+                <th>KM</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tours-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 3: WARTUNGEN -->
+  <section id="tab-maintenance" class="hidden">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">🔧 Wartung & Service für <span class="active-bike-name"></span> hinzufügen</div>
+      </div>
+      <form onsubmit="addMaintenance(event)" class="grid-3">
+        <div>
+          <label>Status</label>
+          <select id="maint-status">
+            <option value="upcoming">⏳ Anstehend / Geplant</option>
+            <option value="done">✅ Erledigt</option>
+          </select>
+        </div>
+        <div>
+          <label>Datum / Fällig am</label>
+          <input type="date" id="maint-date" required>
+        </div>
+        <div>
+          <label>Bei Kilometerstand / Fällig bei KM</label>
+          <input type="number" step="0.1" id="maint-km" placeholder="z. B. 1000" required>
+        </div>
+        <div>
+          <label>Bauteil / Aufgabe</label>
+          <input type="text" id="maint-title" placeholder="z. B. 50h Service Lyrik / Bremsbeläge" required>
+        </div>
+        <div>
+          <label>Details / Verwendetes Material</label>
+          <input type="text" id="maint-notes" placeholder="z. B. Maxima Plush, Cura Sinter-Beläge">
+        </div>
+        <div style="display:flex; align-items:flex-end;">
+          <button type="submit" class="btn" style="width:100%;">Wartung speichern</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">⏳ Anstehende Wartungen (<span class="active-bike-name"></span>)</div>
+        </div>
+        <div id="maint-upcoming-list"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">✅ Erledigte Wartungen (<span class="active-bike-name"></span>)</div>
+        </div>
+        <div id="maint-done-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 4: DREHMOMENTE -->
+  <section id="tab-torques" class="hidden">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🔩 Drehmomente: <span class="active-bike-name"></span></div>
+        </div>
+        <input type="text" id="torque-search" placeholder="🔍 Schraube oder Bauteil filtern (z. B. Vorbau, Bremse, Dämpfer)..." oninput="renderTorques()" style="margin-bottom: 10px;">
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Bauteil / Verschraubung</th>
+                <th>Drehmoment</th>
+                <th>Werkzeug / Hinweis</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="torque-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">➕ Neues Drehmoment für <span class="active-bike-name"></span></div>
+        </div>
+        <form onsubmit="addTorque(event)">
+          <label>Bauteil / Schraube</label>
+          <input type="text" id="torque-part" placeholder="z. B. Bremssattel Adapter vorne" required>
+          <label>Drehmoment (Nm)</label>
+          <input type="text" id="torque-val" placeholder="z. B. 8 Nm" required>
+          <label>Werkzeug / Schraubensicherung</label>
+          <input type="text" id="torque-note" placeholder="z. B. Inbus 5mm, Loctite 243 mittelfest">
+          <button type="submit" class="btn" style="margin-top:14px; width:100%;">Drehmoment hinzufügen</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 5: SPEZIFIKATIONEN & FOTOS -->
+  <section id="tab-specs" class="hidden">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📸 Foto: <span class="active-bike-name"></span></div>
+        </div>
+        <div class="bike-photo-box" id="bike-photo-preview">
+          <span style="color:var(--text-muted); font-size:0.9rem;">Noch kein Foto hinterlegt</span>
+        </div>
+        <input type="file" id="bike-photo-input" accept="image/*" class="hidden" onchange="handleBikePhotoUpload(event)">
+        <div style="display:flex; gap:10px;">
+          <button class="btn" style="flex:1;" onclick="document.getElementById('bike-photo-input').click()">📷 Fahrrad-Foto auswählen / ändern</button>
+          <button class="btn btn-danger" onclick="removeBikePhoto()">Foto löschen</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">⚙️ Technische Spezifikationen (<span class="active-bike-name"></span>)</div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Kategorie</th>
+                <th>Verbaute Komponente</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="specs-table-body"></tbody>
+          </table>
+        </div>
+
+        <form onsubmit="addSpec(event)" style="margin-top:16px; padding-top:12px; border-top:1px solid var(--border);">
+          <div class="grid-2" style="gap:10px;">
+            <div>
+              <label>Kategorie</label>
+              <input type="text" id="spec-cat" placeholder="z. B. Reifen / Sattelstütze" required>
+            </div>
+            <div>
+              <label>Komponente / Details</label>
+              <input type="text" id="spec-val" placeholder="z. B. Schwalbe Magic Mary 29x2.4" required>
+            </div>
+          </div>
+          <button type="submit" class="btn" style="margin-top:10px; width:100%;">Spezifikation ergänzen</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 6: CLOUD & APP ICON -->
+  <section id="tab-settings" class="hidden">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">☁️ Supabase Cloud-Synchronisation</div>
+        </div>
+        <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:12px;">
+          Trage hier deine kostenlose Supabase Project URL und deinen Anon Public Key ein, um deine Daten und Fotos automatisch zwischen Windows-PC und Android zu synchronisieren.
+        </p>
+        <label>Supabase Project URL</label>
+        <input type="url" id="sb-url" placeholder="https://xyzcompany.supabase.co">
+        <label>Supabase Anon Public Key</label>
+        <input type="password" id="sb-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6...">
+        <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
+          <button class="btn" onclick="saveSupabaseConfig()">🔄 Verbinden & Synchronisieren</button>
+          <button class="btn btn-secondary" onclick="pushToCloud(true)">⬆️ Lokalen Stand in Cloud senden</button>
+          <button class="btn btn-secondary" onclick="pullFromCloud(true)">⬇️ Cloud-Stand abrufen</button>
+        </div>
+        <p id="sb-status-msg" style="font-size:0.83rem; margin-top:12px; color:var(--text-muted);"></p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🎨 Eigenes App-Icon & Datensicherung</div>
+        </div>
+        <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:12px;">
+          Lade ein eigenes Logo oder Bild für deine App hoch. Es wird oben im Header, als Browser-Favicon und in der Cloud gespeichert.
+        </p>
+        <input type="file" id="app-icon-input" accept="image/*" class="hidden" onchange="handleAppIconUpload(event)">
+        <div style="display:flex; gap:10px; margin-bottom:22px;">
+          <button class="btn" onclick="document.getElementById('app-icon-input').click()">🖼️ Eigenes App-Icon hochladen</button>
+          <button class="btn btn-danger" onclick="resetAppIcon()">Standard-Icon</button>
+        </div>
+
+        <div style="padding-top:16px; border-top:1px solid var(--border);">
+          <div class="card-title" style="font-size:0.95rem; margin-bottom:8px;">Manuelles JSON-Backup (PC / Handy)</div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn btn-secondary" onclick="exportBackup()">💾 Backup-Datei herunterladen</button>
+            <input type="file" id="import-file" accept=".json" class="hidden" onchange="importBackup(event)">
+            <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">📂 Backup-Datei einspielen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  const STORAGE_KEY = 'bike_tlc_pro_state_v1';
+  const SB_CONFIG_KEY = 'bike_tlc_supabase_cfg';
+  let activeBike = 'propain';
+  let kmChart = null;
+  let supabaseClient = null;
+
+  const defaultData = {
+    appIcon: null,
+    bikes: {
+      propain: {
+        id: 'propain',
+        name: 'Propain Sresh SL',
+        color: '#ef4444',
+        baseKm: 804.7,
+        photo: null,
+        specs: [
+          { cat: 'Motor', val: 'TQ-HPR60 (60 Nm, 350 W Peak)' },
+          { cat: 'Akku', val: '580 Wh integriert (ohne Range Extender)' },
+          { cat: 'Federgabel', val: 'RockShox Lyrik Ultimate (160 mm)' },
+          { cat: 'Dämpfer', val: 'RockShox Super Deluxe Ultimate (150 mm)' },
+          { cat: 'Bremsen', val: 'Formula Cura 4 (4-Kolben, Mineralöl)' },
+          { cat: 'Schaltung', val: 'Shimano Deore XT M8100 (1x12)' }
+        ],
+        torques: [
+          { part: 'Hinterrad Steckachse', val: '15 Nm', note: 'Inbus 6 mm (leicht fetten)' },
+          { part: 'RockShox Lyrik Maxle Stealth Achse', val: '9 - 13.5 Nm', note: 'Inbus 6 mm' },
+          { part: 'Formula Cura 4 Bremssattel-Schrauben', val: '6 - 8 Nm', note: 'Inbus 5 mm, mittelfest' },
+          { part: 'Formula Cura 4 Geber-Schelle (Lenker)', val: '3 Nm', note: 'T25 Torx' },
+          { part: 'Dämpferbolzen (Super Deluxe Ultimate)', val: '10 - 12 Nm', note: 'Herstellerangabe Rahmen beachten' },
+          { part: 'Shimano XT M8100 Schaltwerkbolzen', val: '8 - 10 Nm', note: 'Inbus 5 mm' },
+          { part: 'Kassette Lockring (Microspline)', val: '40 Nm', note: 'Kassettenabzieher' },
+          { part: 'Vorbau-Klemmung (Gabelschaft / Lenker)', val: '5 - 6 Nm', note: 'Carbonpaste bei Carbonlenker' }
+        ],
+        maintenance: [
+          { id: 101, status: 'upcoming', date: '2026-12-01', km: 1000, title: '50h Lower Leg Service (Lyrik & Super Deluxe)', notes: 'Schmieröl & Abstreifer prüfen' },
+          { id: 102, status: 'upcoming', date: '2026-12-15', km: 1200, title: 'Formula Cura 4 Beläge & Entlüftung prüfen', notes: 'Mineralöl & Kolben mobilisieren' },
+          { id: 103, status: 'done', date: '2026-10-15', km: 750, title: 'Kette gereinigt, Verschleiß gemessen & geölt', notes: 'Shimano XT 12-fach Kette i.O.' }
+        ]
+      },
+      canyon: {
+        id: 'canyon',
+        name: 'Canyon Grizl:ONfly Daily',
+        color: '#3b82f6',
+        baseKm: 4148.0,
+        photo: null,
+        specs: [
+          { cat: 'Motor', val: 'Bosch Performance Line SX (55 Nm)' },
+          { cat: 'Akku', val: 'Bosch CompactTube 400 Wh' },
+          { cat: 'Federgabel', val: 'RockShox Rudy (40 mm Federweg)' },
+          { cat: 'Schaltung', val: 'Shimano GRX RD-RX822 12-fach' },
+          { cat: 'Bremsen', val: 'Shimano GRX BL-RX820 Hydraulisch' },
+          { cat: 'Laufräder', val: 'DT Swiss HG 1800 Spline 28' }
+        ],
+        torques: [
+          { part: 'Steckachse Vorne (RockShox Rudy)', val: '10 Nm', note: 'Inbus 6 mm' },
+          { part: 'Steckachse Hinten (Canyon Quixle)', val: '12 - 15 Nm', note: 'Integrierter Hebel / Inbus 6 mm' },
+          { part: 'Sattelstützen-Klemmung (Canyon integriert)', val: '5 Nm', note: 'Carbon-Montagepaste verwenden' },
+          { part: 'Shimano GRX RX822 Schaltwerk', val: '8 - 10 Nm', note: 'Inbus 5 mm' },
+          { part: 'Shimano GRX STI Schelle (Lenker)', val: '6 - 8 Nm', note: 'Inbus 5 mm' },
+          { part: 'Flatmount Bremssattel Schrauben', val: '6 - 8 Nm', note: 'Inbus 4 / 5 mm' },
+          { part: 'Centerlock Bremsscheiben Lockring', val: '40 Nm', note: 'Verschlussring-Werkzeug' }
+        ],
+        maintenance: [
+          { id: 201, status: 'upcoming', date: '2026-11-30', km: 4500, title: 'Kette & Kassette Verschleißprüfung (GRX 12s)', notes: 'Messlehre 0.5% prüfen' },
+          { id: 202, status: 'upcoming', date: '2026-12-10', km: 4500, title: 'RockShox Rudy 50h Lower Leg Service', notes: 'Tauchrohre reinigen & schmieren' },
+          { id: 203, status: 'done', date: '2026-10-01', km: 4000, title: 'Inspektion Bosch SX Antrieb & Bremsbeläge', notes: 'Keine Fehlercodes, Beläge gut' }
+        ]
+      }
+    },
+    tours: []
+  };
+
+  let appData = loadLocalData();
+
+  function loadLocalData() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return JSON.parse(JSON.stringify(defaultData));
+    try {
+      return JSON.parse(raw);
+    } catch (e) {
+      return JSON.parse(JSON.stringify(defaultData));
+    }
+  }
+
+  function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+    renderAll();
+    if (supabaseClient) {
+      pushToCloud(false);
+    }
+  }
+
+  // Berechnung der Kilometerstände
+  function getBikeTourKm(bikeId) {
+    return appData.tours
+      .filter(t => t.bike === bikeId)
+      .reduce((sum, t) => sum + parseFloat(t.km || 0), 0);
+  }
+
+  function getBikeTotalKm(bikeId) {
+    const base = parseFloat(appData.bikes[bikeId].baseKm || 0);
+    return base + getBikeTourKm(bikeId);
+  }
+
+  function formatKm(num) {
+    return num.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' km';
+  }
+
+  // Bike Wechsel
+  function selectBike(bikeId) {
+    activeBike = bikeId;
+    const accent = appData.bikes[bikeId].color;
+    document.documentElement.style.setProperty('--accent', accent);
+
+    document.getElementById('btn-propain').className = 'bike-btn ' + (bikeId === 'propain' ? 'active-propain' : '');
+    document.getElementById('btn-canyon').className = 'bike-btn ' + (bikeId === 'canyon' ? 'active-canyon' : '');
+    document.getElementById('tour-bike').value = bikeId;
+
+    document.querySelectorAll('.active-bike-name').forEach(el => {
+      el.textContent = appData.bikes[bikeId].name;
+    });
+
+    renderAll();
+  }
+
+  // Tab Wechsel
+  function switchTab(tabId) {
+    document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+    document.getElementById('tab-' + tabId).classList.remove('hidden');
+
+    document.querySelectorAll('.nav-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tabId);
+    });
+
+    if (tabId === 'dashboard') {
+      renderChart();
+    }
+  }
+
+  // Haupt-Render-Funktion
+  function renderAll() {
+    document.querySelectorAll('.active-bike-name').forEach(el => {
+      el.textContent = appData.bikes[activeBike].name;
+    });
+
+    // App Icon rendern
+    const iconBox = document.getElementById('app-icon-container');
+    if (appData.appIcon) {
+      iconBox.innerHTML = `<img src="${appData.appIcon}" alt="App Icon" style="width:100%;height:100%;border-radius:10px;object-fit:cover;">`;
+      document.getElementById('dynamic-favicon').href = appData.appIcon;
+      document.getElementById('dynamic-apple-icon').href = appData.appIcon;
+    } else {
+      iconBox.innerHTML = '🚵';
+    }
+
+    // KPIs
+    const propainBase = parseFloat(appData.bikes.propain.baseKm);
+    const propainTour = getBikeTourKm('propain');
+    const propainTotal = getBikeTotalKm('propain');
+
+    const canyonBase = parseFloat(appData.bikes.canyon.baseKm);
+    const canyonTour = getBikeTourKm('canyon');
+    const canyonTotal = getBikeTotalKm('canyon');
+
+    const grandTotal = propainTotal + canyonTotal;
+
+    document.getElementById('kpi-propain-km').textContent = formatKm(propainTotal);
+    document.getElementById('kpi-propain-sub').textContent = `Basis: ${formatKm(propainBase)} + Touren: ${formatKm(propainTour)}`;
+
+    document.getElementById('kpi-canyon-km').textContent = formatKm(canyonTotal);
+    document.getElementById('kpi-canyon-sub').textContent = `Basis: ${formatKm(canyonBase)} + Touren: ${formatKm(canyonTour)}`;
+
+    document.getElementById('kpi-total-km').textContent = formatKm(grandTotal);
+    document.getElementById('kpi-total-tours').textContent = `${appData.tours.length} eingetragene Einzel-Touren`;
+
+    document.getElementById('base-km-propain').value = propainBase;
+    document.getElementById('base-km-canyon').value = canyonBase;
+
+    renderTours();
+    renderMaintenance();
+    renderTorques();
+    renderSpecsAndPhoto();
+    renderChart();
+  }
+
+  function renderChart() {
+    const ctx = document.getElementById('kmBarChart');
+    if (!ctx) return;
+
+    const pKm = getBikeTotalKm('propain');
+    const cKm = getBikeTotalKm('canyon');
+    const totalKm = pKm + cKm;
+
+    if (kmChart) kmChart.destroy();
+    kmChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Propain Sresh SL', 'Canyon Grizl:ONfly', 'Gesamtkilometer'],
+        datasets: [{
+          label: 'Kilometerstand (km)',
+          data: [pKm, cKm, totalKm],
+          backgroundColor: ['rgba(239, 68, 68, 0.85)', 'rgba(59, 130, 246, 0.85)', 'rgba(16, 185, 129, 0.85)'],
+          borderColor: ['#ef4444', '#3b82f6', '#10b981'],
+          borderWidth: 2,
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: '#3d4856' },
+            ticks: { color: '#f1f5f9' }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { color: '#f1f5f9', font: { weight: '600' } }
+          }
+        }
+      }
+    });
+  }
+
+  // Touren
+  function addTour(e) {
+    e.preventDefault();
+    const bike = document.getElementById('tour-bike').value;
+    const date = document.getElementById('tour-date').value;
+    const km = parseFloat(document.getElementById('tour-km').value);
+    const note = document.getElementById('tour-note').value.trim();
+
+    appData.tours.unshift({
+      id: Date.now(),
+      bike,
+      date,
+      km,
+      note: note || 'Ausfahrt'
+    });
+
+    document.getElementById('tour-km').value = '';
+    document.getElementById('tour-note').value = '';
+    saveData();
+  }
+
+  function deleteTour(id) {
+    appData.tours = appData.tours.filter(t => t.id !== id);
+    saveData();
+  }
+
+  function updateBaseKm() {
+    const pVal = parseFloat(document.getElementById('base-km-propain').value);
+    const cVal = parseFloat(document.getElementById('base-km-canyon').value);
+    if (!isNaN(pVal)) appData.bikes.propain.baseKm = pVal;
+    if (!isNaN(cVal)) appData.bikes.canyon.baseKm = cVal;
+    saveData();
+  }
+
+  function renderTours() {
+    const tbody = document.getElementById('tours-table-body');
+    if (appData.tours.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="color:var(--text-muted); text-align:center;">Noch keine Einzel-Touren eingetragen. Die Basis-Kilometerstände (804,7 km & 4.148,0 km) sind aktiv.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = appData.tours.map(t => {
+      const bName = t.bike === 'propain' ? 'Propain' : 'Canyon';
+      const bColor = t.bike === 'propain' ? 'var(--propain)' : 'var(--canyon)';
+      return `
+        <tr>
+          <td>${t.date}</td>
+          <td><span class="badge" style="background:${bColor};color:#fff;">${bName}</span></td>
+          <td>${t.note}</td>
+          <td><strong>+${t.km.toLocaleString('de-DE', {minimumFractionDigits:1})} km</strong></td>
+          <td style="text-align:right;"><button class="btn btn-danger" onclick="deleteTour(${t.id})">✕</button></td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // Wartungen
+  function addMaintenance(e) {
+    e.preventDefault();
+    const status = document.getElementById('maint-status').value;
+    const date = document.getElementById('maint-date').value;
+    const km = parseFloat(document.getElementById('maint-km').value);
+    const title = document.getElementById('maint-title').value.trim();
+    const notes = document.getElementById('maint-notes').value.trim();
+
+    appData.bikes[activeBike].maintenance.unshift({
+      id: Date.now(),
+      status,
+      date,
+      km,
+      title,
+      notes
+    });
+
+    document.getElementById('maint-title').value = '';
+    document.getElementById('maint-notes').value = '';
+    saveData();
+  }
+
+  function markMaintenanceDone(id) {
+    const item = appData.bikes[activeBike].maintenance.find(m => m.id === id);
+    if (item) {
+      item.status = 'done';
+      item.date = new Date().toISOString().split('T')[0];
+      item.km = Number(getBikeTotalKm(activeBike).toFixed(1));
+      saveData();
+    }
+  }
+
+  function deleteMaintenance(id) {
+    appData.bikes[activeBike].maintenance = appData.bikes[activeBike].maintenance.filter(m => m.id !== id);
+    saveData();
+  }
+
+  function renderMaintenance() {
+    const list = appData.bikes[activeBike].maintenance;
+    const currentKm = getBikeTotalKm(activeBike);
+
+    const upcoming = list.filter(m => m.status === 'upcoming');
+    const done = list.filter(m => m.status === 'done');
+
+    const renderItem = (m, isUpcoming) => {
+      const diff = (m.km - currentKm).toFixed(1);
+      const badgeHtml = isUpcoming
+        ? `<span class="badge badge-due">Fällig bei ${m.km} km (in ${diff} km)</span>`
+        : `<span class="badge badge-ok">Erledigt bei ${m.km} km</span>`;
+
+      return `
+        <div style="padding:12px; background:var(--bg-input); border:1px solid var(--border); border-radius:8px; margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+            <div>
+              <strong>${m.title}</strong>
+              <div style="font-size:0.82rem; color:var(--text-muted); margin-top:2px;">📅 ${m.date} • ${m.notes || ''}</div>
+              <div style="margin-top:6px;">${badgeHtml}</div>
+            </div>
+            <div style="display:flex; gap:6px;">
+              ${isUpcoming ? `<button class="btn btn-success" onclick="markMaintenanceDone(${m.id})" title="Als erledigt markieren">✓</button>` : ''}
+              <button class="btn btn-danger" onclick="deleteMaintenance(${m.id})">✕</button>
+            </div>
+          </div>
+        </div>
+      `;
+    };
+
+    document.getElementById('maint-upcoming-list').innerHTML = upcoming.length
+      ? upcoming.map(m => renderItem(m, true)).join('')
+      : '<p style="color:var(--text-muted); font-size:0.9rem;">Keine offenen Wartungen.</p>';
+
+    document.getElementById('dashboard-upcoming-list').innerHTML = upcoming.length
+      ? upcoming.slice(0, 3).map(m => renderItem(m, true)).join('')
+      : '<p style="color:var(--text-muted); font-size:0.9rem;">Alles erledigt! Keine offenen Wartungen.</p>';
+
+    document.getElementById('maint-done-list').innerHTML = done.length
+      ? done.map(m => renderItem(m, false)).join('')
+      : '<p style="color:var(--text-muted); font-size:0.9rem;">Noch keine abgeschlossenen Wartungen protokolliert.</p>';
+  }
+
+  // Drehmomente
+  function addTorque(e) {
+    e.preventDefault();
+    const part = document.getElementById('torque-part').value.trim();
+    const val = document.getElementById('torque-val').value.trim();
+    const note = document.getElementById('torque-note').value.trim();
+
+    appData.bikes[activeBike].torques.push({ part, val, note });
+    document.getElementById('torque-part').value = '';
+    document.getElementById('torque-val').value = '';
+    document.getElementById('torque-note').value = '';
+    saveData();
+  }
+
+  function deleteTorque(idx) {
+    appData.bikes[activeBike].torques.splice(idx, 1);
+    saveData();
+  }
+
+  function renderTorques() {
+    const query = (document.getElementById('torque-search').value || '').toLowerCase();
+    const tbody = document.getElementById('torque-table-body');
+    const torques = appData.bikes[activeBike].torques;
+
+    tbody.innerHTML = torques
+      .map((t, idx) => ({ ...t, idx }))
+      .filter(t => t.part.toLowerCase().includes(query) || t.note.toLowerCase().includes(query))
+      .map(t => `
+        <tr>
+          <td><strong>${t.part}</strong></td>
+          <td><span class="badge badge-nm">${t.val}</span></td>
+          <td style="color:var(--text-muted);">${t.note || '-'}</td>
+          <td style="text-align:right;"><button class="btn btn-danger" onclick="deleteTorque(${t.idx})">✕</button></td>
+        </tr>
+      `).join('');
+  }
+
+  // Spezifikationen & Fotos
+  function addSpec(e) {
+    e.preventDefault();
+    const cat = document.getElementById('spec-cat').value.trim();
+    const val = document.getElementById('spec-val').value.trim();
+    appData.bikes[activeBike].specs.push({ cat, val });
+    document.getElementById('spec-cat').value = '';
+    document.getElementById('spec-val').value = '';
+    saveData();
+  }
+
+  function deleteSpec(idx) {
+    appData.bikes[activeBike].specs.splice(idx, 1);
+    saveData();
+  }
+
+  function renderSpecsAndPhoto() {
+    const bike = appData.bikes[activeBike];
+    const photoBox = document.getElementById('bike-photo-preview');
+    if (bike.photo) {
+      photoBox.innerHTML = `<img src="${bike.photo}" alt="${bike.name}">`;
+    } else {
+      photoBox.innerHTML = `<span style="color:var(--text-muted); font-size:0.9rem;">Noch kein Foto für ${bike.name} hinterlegt</span>`;
+    }
+
+    const tbody = document.getElementById('specs-table-body');
+    tbody.innerHTML = bike.specs.map((s, idx) => `
+      <tr>
+        <td style="color:var(--text-muted); width:35%;">${s.cat}</td>
+        <td><strong>${s.val}</strong></td>
+        <td style="text-align:right;"><button class="btn btn-danger" onclick="deleteSpec(${idx})">✕</button></td>
+      </tr>
+    `).join('');
+  }
+
+  // Bild-Komprimierung (damit Fotos direkt im Cloud-JSON und LocalStorage funktionieren)
+  function compressImage(file, maxWidth, callback) {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const scale = Math.min(1, maxWidth / img.width);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        callback(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleBikePhotoUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    compressImage(file, 1000, (dataUrl) => {
+      appData.bikes[activeBike].photo = dataUrl;
+      saveData();
+    });
+  }
+
+  function removeBikePhoto() {
+    appData.bikes[activeBike].photo = null;
+    saveData();
+  }
+
+  function handleAppIconUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    compressImage(file, 256, (dataUrl) => {
+      appData.appIcon = dataUrl;
+      saveData();
+    });
+  }
+
+  function resetAppIcon() {
+    appData.appIcon = null;
+    saveData();
+  }
+
+  // Backup Export / Import
+  function exportBackup() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+    const dlAnchor = document.createElement('a');
+    dlAnchor.setAttribute("href", dataStr);
+    dlAnchor.setAttribute("download", `bike_tlc_backup_${new Date().toISOString().slice(0,10)}.json`);
+    dlAnchor.click();
+  }
+
+  function importBackup(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        appData = JSON.parse(ev.target.result);
+        saveData();
+        alert('Backup erfolgreich geladen!');
+      } catch (err) {
+        alert('Ungültige Backup-Datei.');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // Supabase Cloud Sync
+  function initSupabase() {
+    const rawCfg = localStorage.getItem(SB_CONFIG_KEY);
+    if (!rawCfg) return;
+    try {
+      const cfg = JSON.parse(rawCfg);
+      if (cfg.url && cfg.key) {
+        document.getElementById('sb-url').value = cfg.url;
+        document.getElementById('sb-key').value = cfg.key;
+        supabaseClient = window.supabase.createClient(cfg.url, cfg.key);
+        pullFromCloud(false);
+      }
+    } catch (e) {}
+  }
+
+  function saveSupabaseConfig() {
+    const url = document.getElementById('sb-url').value.trim();
+    const key = document.getElementById('sb-key').value.trim();
+    if (!url || !key) {
+      alert('Bitte sowohl Project URL als auch Anon Key eingeben.');
+      return;
+    }
+    localStorage.setItem(SB_CONFIG_KEY, JSON.stringify({ url, key }));
+    supabaseClient = window.supabase.createClient(url, key);
+    pullFromCloud(true);
+  }
+
+  async function pullFromCloud(showMessage) {
+    if (!supabaseClient) return;
+    const statusMsg = document.getElementById('sb-status-msg');
+    try {
+      const { data, error } = await supabaseClient
+        .from('bike_app_state')
+        .select('payload')
+        .eq('id', 1)
+        .single();
+
+      if (error) throw error;
+
+      if (data && data.payload && Object.keys(data.payload).length > 0) {
+        appData = data.payload;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+        renderAll();
+        setSyncStatus(true, 'Cloud verbunden & synchron');
+        if (showMessage) statusMsg.textContent = '✅ Daten erfolgreich aus der Supabase-Cloud geladen.';
+      } else {
+        await pushToCloud(false);
+        setSyncStatus(true, 'Initialer Stand in Cloud gespeichert');
+      }
+    } catch (err) {
+      setSyncStatus(false, 'Cloud-Fehler (Prüfe URL/Key)');
+      if (showMessage) statusMsg.textContent = '❌ Fehler: ' + err.message;
+    }
+  }
+
+  async function pushToCloud(showMessage) {
+    if (!supabaseClient) return;
+    const statusMsg = document.getElementById('sb-status-msg');
+    try {
+      const { error } = await supabaseClient
+        .from('bike_app_state')
+        .upsert({ id: 1, payload: appData, updated_at: new Date().toISOString() });
+
+      if (error) throw error;
+      setSyncStatus(true, 'Cloud synchronisiert');
+      if (showMessage) statusMsg.textContent = '✅ Aktueller Stand erfolgreich in die Cloud übertragen.';
+    } catch (err) {
+      setSyncStatus(false, 'Sync fehlgeschlagen');
+      if (showMessage) statusMsg.textContent = '❌ Fehler beim Senden: ' + err.message;
+    }
+  }
+
+  function setSyncStatus(online, text) {
+    const dot = document.getElementById('sync-dot');
+    const txt = document.getElementById('sync-text');
+    dot.className = 'sync-dot ' + (online ? 'online' : '');
+    txt.textContent = text;
+  }
+
+  // Initialisierung beim Start
+  window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('tour-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('maint-date').value = new Date().toISOString().split('T')[0];
+    selectBike('propain');
+    initSupabase();
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  });
+</script>
+</body>
+</html>

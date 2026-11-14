@@ -83,7 +83,13 @@
     .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; }
     .sync-dot.online { background: #10b981; }
 
-    /* Bike Umschalter (Dynamisch) */
+    /* Header Rechte Seite: Bike-Switcher + Drei-Punkte-Menü */
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
     .bike-switcher {
       display: flex; gap: 6px; background: var(--bg-input); padding: 4px;
       border-radius: 10px; border: 1px solid var(--border); flex-wrap: wrap; align-items: center;
@@ -101,6 +107,74 @@
       gap: 4px; font-size: 0.82rem; font-weight: 600; transition: 0.2s;
     }
     .bike-add-btn:hover { color: var(--text-main); border-color: var(--text-muted); background: var(--bg-card); }
+
+    /* Drei-Punkte-Menü Button & Overlay-Panel */
+    .dots-menu-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.2s;
+      flex-shrink: 0;
+    }
+    .dots-menu-btn:hover, .dots-menu-btn.active {
+      background: var(--bg-card-hover);
+      border-color: var(--text-muted);
+    }
+    .app-menu-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 19, 24, 0.72);
+      backdrop-filter: blur(4px);
+      z-index: 2000;
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-start;
+      padding: 68px 20px 20px;
+      animation: fadeIn 0.15s ease;
+    }
+    .app-menu-panel {
+      width: 100%;
+      max-width: 460px;
+      max-height: calc(100vh - 88px);
+      overflow-y: auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.55);
+      padding: 18px;
+    }
+    .menu-section {
+      padding-top: 14px;
+      margin-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .menu-section:first-of-type {
+      padding-top: 0;
+      margin-top: 0;
+      border-top: none;
+    }
+    .menu-section-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 6px;
+      color: var(--text-main);
+    }
+    .install-banner-box {
+      background: linear-gradient(135deg, rgba(4, 120, 87, 0.28), rgba(35, 42, 50, 0.95));
+      border: 1px solid rgba(16, 185, 129, 0.45);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
 
     /* Diagramm-Umschalter (KM / Zeit / HM) */
     .chart-mode-switcher {
@@ -562,8 +636,10 @@
 
     @media (max-width: 640px) {
       header { flex-direction: column; align-items: stretch; }
-      .bike-switcher { justify-content: center; }
+      .header-right { justify-content: space-between; width: 100%; }
+      .bike-switcher { flex: 1; justify-content: center; }
       .dial-grid { grid-template-columns: 1fr; }
+      .app-menu-backdrop { padding: 12px; align-items: center; justify-content: center; }
     }
   </style>
 </head>
@@ -607,6 +683,8 @@
   <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></symbol>
   <symbol id="i-play" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></symbol>
   <symbol id="i-chevron-down" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
+  <symbol id="i-more-vertical" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="19" r="1.5"/></symbol>
+  <symbol id="i-smartphone" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></symbol>
 </svg>
 
 <header>
@@ -616,17 +694,135 @@
     </div>
     <div>
       <h1>Bike TLC Pro</h1>
-      <div class="sync-badge" onclick="switchTab('settings')">
+      <div class="sync-badge" onclick="toggleAppMenu(event)" title="Cloud-Synchronisation & Einstellungen öffnen">
         <span id="sync-dot" class="sync-dot"></span>
         <span id="sync-text">Lokal gespeichert (Cloud-Setup offen)</span>
       </div>
     </div>
   </div>
 
-  <!-- Dynamischer Fahrrad-Umschalter -->
-  <div class="bike-switcher" id="bike-switcher-container"></div>
+  <!-- Rechts oben: Fahrrad-Umschalter + Drei-Punkte-Menü -->
+  <div class="header-right">
+    <div class="bike-switcher" id="bike-switcher-container"></div>
+    <button type="button" id="dots-menu-btn" class="dots-menu-btn" onclick="toggleAppMenu(event)" title="Menü: App installieren, Cloud, Komoot & Backup">
+      <svg class="icon icon-lg"><use href="#i-more-vertical"/></svg>
+    </button>
+  </div>
 </header>
 
+<!-- DREI-PUNKTE-MENÜ OVERLAY (App installieren, Cloud, Komoot-Trigger, App-Icon & Backup) -->
+<div id="app-menu-backdrop" class="app-menu-backdrop hidden" onclick="closeAppMenu(event)">
+  <div class="app-menu-panel" onclick="event.stopPropagation()">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:12px; margin-bottom:14px; border-bottom:1px solid var(--border);">
+      <div style="font-size:1.05rem; font-weight:700; display:flex; align-items:center; gap:8px;">
+        <svg class="icon"><use href="#i-sliders"/></svg> App-Menü & Cloud-Einstellungen
+      </div>
+      <button type="button" class="btn btn-secondary btn-icon" onclick="closeAppMenu()" title="Menü schließen">
+        <svg class="icon icon-sm"><use href="#i-x"/></svg>
+      </button>
+    </div>
+
+    <!-- 1. APP INSTALLIEREN (ANDROID & WINDOWS PWA) -->
+    <div class="menu-section">
+      <div class="install-banner-box">
+        <div class="menu-section-title" style="color:#a7f3d0;">
+          <svg class="icon icon-sm"><use href="#i-smartphone"/></svg> App auf Gerät installieren
+        </div>
+        <p id="pwa-install-hint" style="font-size:0.78rem; color:var(--text-muted); margin-bottom:10px;">
+          Installiere Bike TLC Pro als eigenständige Vollbild-App mit randlosem Icon auf deinem Android-Startbildschirm oder Windows-PC.
+        </p>
+        <button type="button" id="btn-pwa-install" class="btn" style="width:100%; background:#059669;" onclick="installPwaApp()">
+          <svg class="icon icon-sm"><use href="#i-download"/></svg> <span id="btn-pwa-install-text">App installieren</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. SUPABASE CLOUD-SYNCHRONISATION -->
+    <div class="menu-section">
+      <div class="menu-section-title">
+        <svg class="icon icon-sm"><use href="#i-cloud"/></svg> Supabase Cloud-Synchronisation
+      </div>
+      <label style="margin-top:4px;">Supabase Project URL</label>
+      <input type="url" id="sb-url" placeholder="https://xyzcompany.supabase.co">
+      <label>Supabase Anon Public Key</label>
+      <input type="password" id="sb-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6...">
+      <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+        <button type="button" class="btn" style="flex:1; padding:8px 12px; font-size:0.82rem;" onclick="saveSupabaseConfig()">
+          <svg class="icon icon-sm"><use href="#i-refresh"/></svg> Verbinden
+        </button>
+        <button type="button" class="btn btn-secondary" style="padding:8px 10px; font-size:0.82rem;" onclick="pushToCloud(true)" title="Lokalen Stand in die Cloud senden">
+          <svg class="icon icon-sm"><use href="#i-upload"/></svg> Senden
+        </button>
+        <button type="button" class="btn btn-secondary" style="padding:8px 10px; font-size:0.82rem;" onclick="pullFromCloud(true)" title="Cloud-Stand abrufen">
+          <svg class="icon icon-sm"><use href="#i-download"/></svg> Abrufen
+        </button>
+      </div>
+      <p id="sb-status-msg" style="font-size:0.78rem; margin-top:8px; color:var(--text-muted);"></p>
+    </div>
+
+    <!-- 3. GITHUB ACTION TRIGGER FÜR KOMOOT LIVE-SYNC -->
+    <div class="menu-section">
+      <div class="menu-section-title" style="color:#d9f99d;">
+        <svg class="icon icon-sm"><use href="#i-compass"/></svg> GitHub Trigger (Komoot Live-Sync)
+      </div>
+      <div class="grid-2" style="gap:8px;">
+        <div>
+          <label style="margin-top:2px;">GitHub Repo (Nutzer/Repo)</label>
+          <input type="text" id="gh-repo" placeholder="z. B. max/bike-tlc-pro">
+        </div>
+        <div>
+          <label style="margin-top:2px;">Workflow / Branch</label>
+          <div style="display:flex; gap:4px;">
+            <input type="text" id="gh-workflow" value="keep-alive.yml" style="flex:1;" title="Workflow-Datei">
+            <input type="text" id="gh-branch" value="main" style="width:70px;" title="Branch">
+          </div>
+        </div>
+      </div>
+      <label>GitHub Personal Access Token (nur lokal gespeichert)</label>
+      <input type="password" id="gh-token" placeholder="github_pat_...">
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <button type="button" class="btn-komoot" style="flex:1; justify-content:center;" onclick="saveGitHubConfig()">
+          <svg class="icon icon-sm"><use href="#i-save"/></svg> Trigger speichern
+        </button>
+        <button type="button" class="btn btn-secondary" style="padding:7px 12px; font-size:0.8rem;" onclick="triggerGitHubKomootSync()">
+          <svg class="icon icon-sm"><use href="#i-play"/></svg> Jetzt testen
+        </button>
+      </div>
+      <p id="gh-status-msg" style="font-size:0.78rem; margin-top:6px; color:var(--text-muted);"></p>
+    </div>
+
+    <!-- 4. EIGENES APP-ICON & JSON-DATENSICHERUNG -->
+    <div class="menu-section">
+      <div class="menu-section-title">
+        <svg class="icon icon-sm"><use href="#i-camera"/></svg> App-Icon & Datensicherung (Backup)
+      </div>
+      <p style="font-size:0.76rem; color:var(--text-muted); margin-bottom:8px;">
+        Hochgeladene Icons werden automatisch randlos quadratisch (`512x512 px`) für Android & Windows zugeschnitten.
+      </p>
+      <input type="file" id="app-icon-input" accept="image/*" class="hidden" onchange="handleAppIconUpload(event)">
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <button type="button" class="btn" style="flex:1; padding:8px 12px; font-size:0.82rem;" onclick="document.getElementById('app-icon-input').click()">
+          <svg class="icon icon-sm"><use href="#i-upload"/></svg> Eigenes App-Icon wählen
+        </button>
+        <button type="button" class="btn btn-danger" style="padding:8px 12px; font-size:0.82rem;" onclick="resetAppIcon()">
+          <svg class="icon icon-sm"><use href="#i-refresh"/></svg> Standard
+        </button>
+      </div>
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button type="button" class="btn btn-secondary" style="flex:1; padding:8px 10px; font-size:0.8rem;" onclick="exportBackup()">
+          <svg class="icon icon-sm"><use href="#i-download"/></svg> Backup laden (.json)
+        </button>
+        <input type="file" id="import-file" accept=".json" class="hidden" onchange="importBackup(event)">
+        <button type="button" class="btn btn-secondary" style="flex:1; padding:8px 10px; font-size:0.8rem;" onclick="document.getElementById('import-file').click()">
+          <svg class="icon icon-sm"><use href="#i-upload"/></svg> Backup einspielen
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HAUPTNAVIGATION (6 REINE BIKE-REITER) -->
 <nav>
   <button class="nav-tab active" data-tab="dashboard" onclick="switchTab('dashboard')">
     <svg class="icon"><use href="#i-chart"/></svg> Übersicht & Grafik
@@ -645,9 +841,6 @@
   </button>
   <button class="nav-tab" data-tab="specs" onclick="switchTab('specs')">
     <svg class="icon"><use href="#i-layers"/></svg> Spezifikationen & Bikes
-  </button>
-  <button class="nav-tab" data-tab="settings" onclick="switchTab('settings')">
-    <svg class="icon"><use href="#i-cloud"/></svg> Cloud & App-Icon
   </button>
 </nav>
 
@@ -981,7 +1174,7 @@
     <div class="card">
       <div class="card-header">
         <div class="card-title"><svg class="icon"><use href="#i-ruler"/></svg> Interaktiver SAG-Rechner (<span class="active-bike-name"></span>)</div>
-        <span class="badge badge-ok">O-Ring Abstand in mm messen &rarr; Prozent berechnen</span>
+        <span class="badge badge-ok">O-Ring Abstand in mm messen → Prozent berechnen</span>
       </div>
       <div class="grid-2">
         <div>
@@ -1350,101 +1543,6 @@
       </div>
     </div>
   </section>
-
-  <!-- TAB 7: CLOUD, GITHUB KOMOOT-TRIGGER & APP ICON -->
-  <section id="tab-settings" class="hidden">
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title"><svg class="icon"><use href="#i-cloud"/></svg> Supabase Cloud-Synchronisation</div>
-        </div>
-        <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:12px;">
-          Trage hier deine kostenlose Supabase Project URL und deinen Anon Public Key ein, um deine Daten und Fotos automatisch zwischen Windows-PC und Android zu synchronisieren.
-        </p>
-        <label>Supabase Project URL</label>
-        <input type="url" id="sb-url" placeholder="https://xyzcompany.supabase.co">
-        <label>Supabase Anon Public Key</label>
-        <input type="password" id="sb-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6...">
-        <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
-          <button class="btn" onclick="saveSupabaseConfig()">
-            <svg class="icon"><use href="#i-refresh"/></svg> Verbinden & Synchronisieren
-          </button>
-          <button class="btn btn-secondary" onclick="pushToCloud(true)">
-            <svg class="icon"><use href="#i-upload"/></svg> In Cloud senden
-          </button>
-          <button class="btn btn-secondary" onclick="pullFromCloud(true)">
-            <svg class="icon"><use href="#i-download"/></svg> Cloud-Stand abrufen
-          </button>
-        </div>
-        <p id="sb-status-msg" style="font-size:0.83rem; margin-top:12px; color:var(--text-muted);"></p>
-
-        <!-- GITHUB LIVE-SYNC TRIGGER KONFIGURATION -->
-        <div style="margin-top:22px; padding-top:16px; border-top:1px solid var(--border);">
-          <div class="card-title" style="font-size:0.95rem; margin-bottom:6px; color:#d9f99d;">
-            <svg class="icon icon-sm"><use href="#i-compass"/></svg> GitHub Action Direkt-Trigger (für Komoot Live-Sync)
-          </div>
-          <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">
-            Optional: Hinterlege dein GitHub-Repo und einen Fine-Grained Token (Berechtigung: <em>Actions Read & Write</em>), um den Komoot-Abruf jederzeit per Klick direkt aus der App zu starten.
-          </p>
-          <div class="grid-2" style="gap:10px;">
-            <div>
-              <label>GitHub Repository (Nutzer/Repo)</label>
-              <input type="text" id="gh-repo" placeholder="z. B. max/bike-tlc-pro">
-            </div>
-            <div>
-              <label>Workflow-Dateiname / Branch</label>
-              <div style="display:flex; gap:6px;">
-                <input type="text" id="gh-workflow" value="keep-alive.yml" style="flex:1;" title="Dateiname in .github/workflows/">
-                <input type="text" id="gh-branch" value="main" style="width:80px;" title="Branch (main oder master)">
-              </div>
-            </div>
-          </div>
-          <label>GitHub Personal Access Token (wird nur lokal gespeichert)</label>
-          <input type="password" id="gh-token" placeholder="github_pat_...">
-          <div style="display:flex; gap:10px; margin-top:12px;">
-            <button type="button" class="btn-komoot" onclick="saveGitHubConfig()">
-              <svg class="icon icon-sm"><use href="#i-save"/></svg> GitHub-Trigger speichern
-            </button>
-            <button type="button" class="btn btn-secondary" onclick="triggerGitHubKomootSync()">
-              <svg class="icon icon-sm"><use href="#i-play"/></svg> Jetzt testen
-            </button>
-          </div>
-          <p id="gh-status-msg" style="font-size:0.8rem; margin-top:8px; color:var(--text-muted);"></p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title"><svg class="icon"><use href="#i-camera"/></svg> Eigenes App-Icon & Datensicherung</div>
-        </div>
-        <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:12px;">
-          Lade ein eigenes Logo oder Bild für deine App hoch. Es wird automatisch quadratisch und randlos ohne weiße Ränder zugeschnitten (`512x512 px`) und für Header, Favicon und Android-Homescreen genutzt.
-        </p>
-        <input type="file" id="app-icon-input" accept="image/*" class="hidden" onchange="handleAppIconUpload(event)">
-        <div style="display:flex; gap:10px; margin-bottom:22px;">
-          <button class="btn" onclick="document.getElementById('app-icon-input').click()">
-            <svg class="icon"><use href="#i-upload"/></svg> Eigenes App-Icon hochladen
-          </button>
-          <button class="btn btn-danger" onclick="resetAppIcon()">
-            <svg class="icon icon-sm"><use href="#i-refresh"/></svg> Standard-Icon
-          </button>
-        </div>
-
-        <div style="padding-top:16px; border-top:1px solid var(--border);">
-          <div class="card-title" style="font-size:0.95rem; margin-bottom:8px;">Manuelles JSON-Backup (PC / Handy)</div>
-          <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button class="btn btn-secondary" onclick="exportBackup()">
-              <svg class="icon"><use href="#i-download"/></svg> Backup herunterladen
-            </button>
-            <input type="file" id="import-file" accept=".json" class="hidden" onchange="importBackup(event)">
-            <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">
-              <svg class="icon"><use href="#i-upload"/></svg> Backup einspielen
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
 </main>
 
 <script>
@@ -1464,6 +1562,7 @@
   let kmChart = null;
   let supabaseClient = null;
   let dynamicManifestBlobUrl = null;
+  let deferredInstallPrompt = null;
 
   const DEFAULT_SVG_ICON_URI = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%2336404c'/><g fill='none' stroke='%23991b1b' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'><circle cx='26' cy='68' r='14'/><circle cx='74' cy='68' r='14'/><path d='M26 68l16-28h22l-12 28H26z' stroke='%23f8fafc'/><path d='M58 28h10l6 40' stroke='%23f8fafc'/><path d='M36 40l-4-10h10' stroke='%23f8fafc'/></g></svg>";
 
@@ -1478,7 +1577,77 @@
     const r = (num >> 16) & 255;
     const g = (num >> 8) & 255;
     const b = num & 255;
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    return `rgba(${r},${g}, ${b},${alpha})`;
+  }
+
+  // DREI-PUNKTE-MENÜ STEUERUNG & PWA-INSTALLATION
+  function toggleAppMenu(event) {
+    if (event) event.stopPropagation();
+    const backdrop = document.getElementById('app-menu-backdrop');
+    const btn = document.getElementById('dots-menu-btn');
+    if (!backdrop) return;
+    const isHidden = backdrop.classList.contains('hidden');
+    if (isHidden) {
+      backdrop.classList.remove('hidden');
+      if (btn) btn.classList.add('active');
+      updateInstallButtonState();
+    } else {
+      closeAppMenu();
+    }
+  }
+
+  function closeAppMenu(event) {
+    const backdrop = document.getElementById('app-menu-backdrop');
+    const btn = document.getElementById('dots-menu-btn');
+    if (backdrop) backdrop.classList.add('hidden');
+    if (btn) btn.classList.remove('active');
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    updateInstallButtonState();
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    updateInstallButtonState();
+  });
+
+  function updateInstallButtonState() {
+    const btnText = document.getElementById('btn-pwa-install-text');
+    const hint = document.getElementById('pwa-install-hint');
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+    if (isStandalone) {
+      if (btnText) btnText.textContent = 'App ist bereits installiert ✓';
+      if (hint) hint.textContent = 'Du nutzt Bike TLC Pro bereits im installierten Vollbild-App-Modus.';
+    } else if (deferredInstallPrompt) {
+      if (btnText) btnText.textContent = 'Jetzt als App installieren';
+      if (hint) hint.textContent = 'Bereit zur direkten 1-Klick-Installation auf deinem Gerät.';
+    } else {
+      if (btnText) btnText.textContent = 'App installieren';
+    }
+  }
+
+  async function installPwaApp() {
+    if (deferredInstallPrompt) {
+      deferredInstallPrompt.prompt();
+      const { outcome } = await deferredInstallPrompt.userChoice;
+      if (outcome === 'accepted') {
+        deferredInstallPrompt = null;
+      }
+      updateInstallButtonState();
+      return;
+    }
+
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (isStandalone) {
+      alert('Bike TLC Pro ist bereits als App auf deinem Gerät installiert und geöffnet.');
+      return;
+    }
+
+    alert('Direkt-Installation über den Browser:\n\n1. Tippe ganz oben rechts im Browser (Chrome) auf das Browser-Menü (⋮).\n2. Wähle "App installieren" oder "Zum Startbildschirm hinzufügen".\n\n(Hinweis: Falls du zuvor eine ältere Version installiert hattest, entferne das alte Icon vorher kurz vom Startbildschirm).');
   }
 
   // Aktualisiert dynamisch das PWA-Manifest, damit auch ein eigenes hochgeladenes App-Icon randlos auf Android installiert wird
@@ -1593,7 +1762,7 @@
 
   function formatDurationHM(decHours) {
     const { h, m } = decimalHoursToHM(decHours);
-    return `${h}h ${String(m).padStart(2, '0')}m`;
+    return `${h}h${String(m).padStart(2, '0')}m`;
   }
 
   function formatAvgSpeed(km, decHours) {
@@ -1633,7 +1802,7 @@
         const h = Math.floor(totalMins / 60);
         const m = totalMins % 60;
         const prefix = already ? '✓ [Bereits eingetragen] ' : '';
-        return `<option value="${idx}">${prefix}${kt.date} | ${kt.name} (${Number(kt.km).toLocaleString('de-DE')} km, ${kt.hm} hm, ${h}h ${String(m).padStart(2,'0')}m)</option>`;
+        return `<option value="${idx}">${prefix}${kt.date} \vert{}${kt.name} (${Number(kt.km).toLocaleString('de-DE')} km,${kt.hm} hm, ${h}h${String(m).padStart(2,'0')}m)</option>`;
       }).join('');
   }
 
@@ -1659,7 +1828,7 @@
     previewTourEnergy();
 
     const fb = document.getElementById('gpx-import-feedback');
-    fb.innerHTML = `${svgIcon('check', 'icon-sm')} <strong>Komoot-Tour übernommen:</strong> "${kt.name}" (${Number(kt.km).toLocaleString('de-DE')} km &bull; ${kt.hm} hm &bull; ${h}h ${String(m).padStart(2,'0')}m). Nur noch Fahrrad prüfen, Rest-Akku eingeben & speichern!`;
+    fb.innerHTML = `${svgIcon('check', 'icon-sm')} <strong>Komoot-Tour übernommen:</strong> "${kt.name}" (${Number(kt.km).toLocaleString('de-DE')} km • ${kt.hm} hm • ${h}h${String(m).padStart(2,'0')}m). Nur noch Fahrrad prüfen, Rest-Akku eingeben & speichern!`;
     fb.classList.remove('hidden');
 
     document.getElementById('tour-battery').focus();
@@ -1703,15 +1872,15 @@
       if (supabaseClient) {
         await pullFromCloud(true);
       }
-      const wantSetup = confirm('Um neue Touren live von Komoot über GitHub abzurufen, trage einmalig dein GitHub-Repo & Token in den Einstellungen ein.\n\nJetzt zu den Einstellungen wechseln?');
-      if (wantSetup) switchTab('settings');
+      const wantSetup = confirm('Um neue Touren live von Komoot über GitHub abzurufen, trage einmalig dein GitHub-Repo & Token im Drei-Punkte-Menü (⋮) oben rechts ein.\n\nMenü jetzt öffnen?');
+      if (wantSetup) toggleAppMenu();
       return;
     }
 
     let cfg;
     try { cfg = JSON.parse(raw); } catch (e) { return; }
     if (!cfg.repo || !cfg.token) {
-      switchTab('settings');
+      toggleAppMenu();
       return;
     }
 
@@ -1729,12 +1898,7 @@
     if (ghMsg) ghMsg.textContent = 'Starte GitHub Workflow...';
 
     try {
-      const dispatchUrl = `https://api.github.com/repos/${cfg.repo}/actions/workflows/${cfg.workflow}/dispatches`;
-      const resp = await fetch(dispatchUrl, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/vnd.github+json',
-          'Authorization': `Bearer ${cfg.token}`,
+      const dispatchUrl = `https://api.github.com/repos/${cfg.repo}/actions/workflows/${cfg.workflow}/dispatches`; const resp = await fetch(dispatchUrl, { method: 'POST', headers: { 'Accept': 'application/vnd.github+json', 'Authorization': `Bearer ${cfg.token}`,
           'X-GitHub-Api-Version': '2022-11-28',
           'Content-Type': 'application/json'
         },
@@ -1743,7 +1907,7 @@
 
       if (!resp.ok) {
         const errBody = await resp.text();
-        throw new Error(`GitHub API Status ${resp.status}: ${errBody}`);
+        throw new Error(`GitHub API Status ${resp.status}:${errBody}`);
       }
 
       if (ghMsg) {
@@ -1753,16 +1917,7 @@
 
       for (let attempt = 1; attempt <= 7; attempt++) {
         await new Promise(r => setTimeout(r, 5000));
-        if (infoEl) infoEl.textContent = `Komoot-Abruf läuft auf GitHub (Prüfung ${attempt}/7)...`;
-        await pullFromCloud(false);
-        if (appData.komootLastSync && appData.komootLastSync !== prevSyncStamp) {
-          break;
-        }
-      }
-
-      const fb = document.getElementById('gpx-import-feedback');
-      if (fb) {
-        fb.innerHTML = `${svgIcon('check', 'icon-sm')} <strong>Komoot Live-Sync abgeschlossen!</strong> Deine neuesten Touren stehen jetzt im Auswahlmenü bereit.`;
+        if (infoEl) infoEl.textContent = `Komoot-Abruf läuft auf GitHub (Prüfung ${attempt}/7)...`; await pullFromCloud(false); if (appData.komootLastSync && appData.komootLastSync !== prevSyncStamp) { break; } }  const fb = document.getElementById('gpx-import-feedback'); if (fb) { fb.innerHTML = `${svgIcon('check', 'icon-sm')} <strong>Komoot Live-Sync abgeschlossen!</strong> Deine neuesten Touren stehen jetzt im Auswahlmenü bereit.`;
         fb.classList.remove('hidden');
       }
     } catch (err) {
@@ -1906,7 +2061,7 @@
           const m = totalMins % 60;
           document.getElementById('tour-hours-h').value = h;
           document.getElementById('tour-hours-m').value = m;
-          durText = `${h}h ${String(m).padStart(2, '0')}m Fahrzeit`;
+          durText = `${h}h${String(m).padStart(2, '0')}m Fahrzeit`;
         }
 
         if (tourName) {
@@ -1916,7 +2071,7 @@
         previewTourEnergy();
 
         const fb = document.getElementById('gpx-import-feedback');
-        fb.innerHTML = `${svgIcon('check', 'icon-sm')} <strong>Komoot-GPX geladen:</strong> "${tourName}" (${roundedKm.toLocaleString('de-DE')} km &bull; ${roundedHm} hm &bull; ${durText}). Jetzt nur noch Rest-Akku ergänzen & speichern!`;
+        fb.innerHTML = `${svgIcon('check', 'icon-sm')} <strong>Komoot-GPX geladen:</strong> "${tourName}" (${roundedKm.toLocaleString('de-DE')} km • ${roundedHm} hm • ${durText}). Jetzt nur noch Rest-Akku ergänzen & speichern!`;
         fb.classList.remove('hidden');
 
         document.getElementById('tour-battery').focus();
@@ -2248,126 +2403,12 @@
       filterSelect.innerHTML = `<option value="all">Alle Fahrräder (${appData.tours.length})</option>` +
         bikesList.map(b => {
           const count = appData.tours.filter(t => t.bike === b.id).length;
-          return `<option value="${b.id}">${b.name} (${count})</option>`;
-        }).join('');
-      if (prevFilter === 'all' || appData.bikes[prevFilter]) {
-        filterSelect.value = prevFilter;
-      } else {
-        filterSelect.value = 'all';
-      }
-    }
-  }
-
-  function openAddBikeManager() {
-    switchTab('specs');
-    cancelBikeEntityEdit();
-    const card = document.getElementById('bike-manager-card');
-    if (card) card.scrollIntoView({ behavior: 'smooth' });
-    document.getElementById('bm-name').focus();
-  }
-
-  function selectBike(bikeId) {
-    if (!appData.bikes[bikeId]) return;
-    activeBike = bikeId;
-    cancelMaintenanceEdit();
-    cancelTorqueEdit();
-    cancelSpecEdit();
-
-    const accent = appData.bikes[bikeId].color || '#991b1b';
-    document.documentElement.style.setProperty('--accent', accent);
-
-    document.getElementById('calc-fork-measured').value = '';
-    document.getElementById('calc-shock-measured').value = '';
-
-    renderAll();
-    previewTourEnergy();
-  }
-
-  function switchTab(tabId) {
-    document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
-    document.getElementById('tab-' + tabId).classList.remove('hidden');
-
-    document.querySelectorAll('.nav-tab').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.tab === tabId);
-    });
-
-    if (tabId === 'dashboard') {
-      renderChart();
-    }
-  }
-
-  // Vollbild-Lightbox öffnen & schließen
-  function openPhotoLightbox(event, bikeId) {
-    if (event) event.stopPropagation();
-    const b = appData.bikes[bikeId];
-    if (!b || !b.photo) return;
-
-    document.getElementById('lightbox-bike-title').textContent = b.name;
-    document.getElementById('lightbox-img').src = b.photo;
-    document.getElementById('lightbox-change-btn').onclick = (ev) => {
-      closePhotoLightbox();
-      triggerQuickPhotoUpload(ev, bikeId);
-    };
-    document.getElementById('photo-lightbox').classList.remove('hidden');
-  }
-
-  function closePhotoLightbox(event) {
-    if (event && event.target && event.target.tagName === 'IMG') return;
-    document.getElementById('photo-lightbox').classList.add('hidden');
-    document.getElementById('lightbox-img').src = '';
-  }
-
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      closePhotoLightbox();
-    }
-  });
-
-  function triggerQuickPhotoUpload(event, bikeId) {
-    if (event) event.stopPropagation();
-    quickPhotoTargetBikeId = bikeId;
-    const input = document.getElementById('quick-card-photo-input');
-    input.value = '';
-    input.click();
-  }
-
-  function handleQuickCardPhotoUpload(e) {
-    const file = e.target.files[0];
-    if (!file || !quickPhotoTargetBikeId || !appData.bikes[quickPhotoTargetBikeId]) return;
-    const targetId = quickPhotoTargetBikeId;
-    compressImage(file, 1000, (dataUrl) => {
-      appData.bikes[targetId].photo = dataUrl;
-      saveData();
-    });
-  }
-
-  function renderDashboardKpis() {
-    const grid = document.getElementById('dashboard-kpi-grid');
-    const bikesList = getOrderedBikes();
-
-    let grandTotalKm = 0;
-    let totalHmAll = 0;
-    let totalHoursAll = 0;
-
-    const bikeCardsHtml = bikesList.map(b => {
-      const baseKm = parseFloat(b.baseKm || 0);
-      const tourKm = getBikeTourKm(b.id);
-      const totalKm = baseKm + tourKm;
-      const totalH = getBikeTotalHours(b.id);
-      const totalHm = getBikeTotalHm(b.id);
-      const avgSpeed = formatAvgSpeed(totalKm, totalH);
-
-      grandTotalKm += totalKm;
-      totalHmAll += totalHm;
-      totalHoursAll += totalH;
-
-      const eff = getBikeAverageEfficiency(b.id);
-      const whSubtitle = b.batteryWh > 0 ? `${b.name} (${b.batteryWh} Wh)` : `${b.name} (Bio-Bike)`;
+          return `<option value="${b.id}">${b.name} (${count})</option>`; }).join(''); if (prevFilter === 'all' \vert{}\vert{} appData.bikes[prevFilter]) { filterSelect.value = prevFilter; } else { filterSelect.value = 'all'; } } }  function openAddBikeManager() { switchTab('specs'); cancelBikeEntityEdit(); const card = document.getElementById('bike-manager-card'); if (card) card.scrollIntoView({ behavior: 'smooth' }); document.getElementById('bm-name').focus(); }  function selectBike(bikeId) { if (!appData.bikes[bikeId]) return; activeBike = bikeId; cancelMaintenanceEdit(); cancelTorqueEdit(); cancelSpecEdit();  const accent = appData.bikes[bikeId].color \vert{}\vert{} '#991b1b'; document.documentElement.style.setProperty('--accent', accent);  document.getElementById('calc-fork-measured').value = ''; document.getElementById('calc-shock-measured').value = '';  renderAll(); previewTourEnergy(); }  function switchTab(tabId) { document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden')); const targetSec = document.getElementById('tab-' + tabId); if (targetSec) targetSec.classList.remove('hidden');  document.querySelectorAll('.nav-tab').forEach(btn => { btn.classList.toggle('active', btn.dataset.tab === tabId); });  if (tabId === 'dashboard') { renderChart(); } }  // Vollbild-Lightbox öffnen & schließen function openPhotoLightbox(event, bikeId) { if (event) event.stopPropagation(); const b = appData.bikes[bikeId]; if (!b \vert{}\vert{} !b.photo) return;  document.getElementById('lightbox-bike-title').textContent = b.name; document.getElementById('lightbox-img').src = b.photo; document.getElementById('lightbox-change-btn').onclick = (ev) => { closePhotoLightbox(); triggerQuickPhotoUpload(ev, bikeId); }; document.getElementById('photo-lightbox').classList.remove('hidden'); }  function closePhotoLightbox(event) { if (event && event.target && event.target.tagName === 'IMG') return; document.getElementById('photo-lightbox').classList.add('hidden'); document.getElementById('lightbox-img').src = ''; }  window.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closePhotoLightbox(); closeAppMenu(); } });  function triggerQuickPhotoUpload(event, bikeId) { if (event) event.stopPropagation(); quickPhotoTargetBikeId = bikeId; const input = document.getElementById('quick-card-photo-input'); input.value = ''; input.click(); }  function handleQuickCardPhotoUpload(e) { const file = e.target.files[0]; if (!file \vert{}\vert{} !quickPhotoTargetBikeId \vert{}\vert{} !appData.bikes[quickPhotoTargetBikeId]) return; const targetId = quickPhotoTargetBikeId; compressImage(file, 1000, (dataUrl) => { appData.bikes[targetId].photo = dataUrl; saveData(); }); }  function renderDashboardKpis() { const grid = document.getElementById('dashboard-kpi-grid'); const bikesList = getOrderedBikes();  let grandTotalKm = 0; let totalHmAll = 0; let totalHoursAll = 0;  const bikeCardsHtml = bikesList.map(b => { const baseKm = parseFloat(b.baseKm \vert{}\vert{} 0); const tourKm = getBikeTourKm(b.id); const totalKm = baseKm + tourKm; const totalH = getBikeTotalHours(b.id); const totalHm = getBikeTotalHm(b.id); const avgSpeed = formatAvgSpeed(totalKm, totalH);  grandTotalKm += totalKm; totalHmAll += totalHm; totalHoursAll += totalH;  const eff = getBikeAverageEfficiency(b.id); const whSubtitle = b.batteryWh > 0 ? `${b.name} (${b.batteryWh} Wh)` : `${b.name} (Bio-Bike)`;
 
       let energyRowHtml = '';
       if (b.batteryWh > 0) {
         energyRowHtml = eff
-          ? `<div class="kpi-energy"><span class="inline-meta">${svgIcon('zap', 'icon-sm')} Ø ${eff.avgWhPerKm.toLocaleString('de-DE', {minimumFractionDigits:1, maximumFractionDigits:1})} Wh/km</span><span class="inline-meta">${svgIcon('flag', 'icon-sm')} 100% &approx; ${Math.round(eff.avgRange100)} km</span></div>`
+          ? `<div class="kpi-energy"><span class="inline-meta">${svgIcon('zap', 'icon-sm')} Ø ${eff.avgWhPerKm.toLocaleString('de-DE', {minimumFractionDigits:1, maximumFractionDigits:1})} Wh/km</span><span class="inline-meta">${svgIcon('flag', 'icon-sm')} 100\% ≈ ${Math.round(eff.avgRange100)} km</span></div>`
           : `<div class="kpi-energy"><span class="inline-meta">${svgIcon('zap', 'icon-sm')} Ø Verbrauch: -- Wh/km</span><span class="inline-meta">${svgIcon('flag', 'icon-sm')} Ø 100%: -- km</span></div>`;
       } else {
         energyRowHtml = `<div class="kpi-energy"><span class="inline-meta" style="color:var(--text-muted);">${svgIcon('bike', 'icon-sm')} Muskelbetrieb (kein Akku)</span></div>`;
@@ -2400,7 +2441,7 @@
             <div class="kpi-main-info">
               <div class="kpi-sub">${whSubtitle}</div>
               <div class="kpi-value">${formatKm(totalKm)}</div>
-              <div class="kpi-sub">Basis: ${formatKm(baseKm)} + Touren: ${formatKm(tourKm)}</div>
+              <div class="kpi-sub">Basis: ${formatKm(baseKm)} + Touren:${formatKm(tourKm)}</div>
             </div>
             ${sidePhotoHtml}
           </div>
@@ -2420,7 +2461,7 @@
       <div class="card" style="border-top: 4px solid var(--success); display:flex; flex-direction:column; justify-content:space-between;">
         <div class="kpi-top-row">
           <div class="kpi-main-info">
-            <div class="kpi-sub">Gesamtbestand (${bikesList.length} ${bikesList.length === 1 ? 'Fahrrad' : 'Fahrräder'})</div>
+            <div class="kpi-sub">Gesamtbestand (${bikesList.length}${bikesList.length === 1 ? 'Fahrrad' : 'Fahrräder'})</div>
             <div class="kpi-value">${formatKm(grandTotalKm)}</div>
             <div class="kpi-sub">${appData.tours.length} eingetragene Einzel-Touren</div>
           </div>
@@ -2462,11 +2503,11 @@
           <div class="grid-3" style="gap:10px;">
             <div>
               <label style="margin-top:0;">Basis-KM (km)</label>
-              <input type="number" step="0.1" value="${parseFloat(b.baseKm || 0)}" onchange="updateSingleBikeBase('${b.id}', 'km', this.value)">
+              <input type="number" step="0.1" value="${parseFloat(b.baseKm \vert{}\vert{} 0)}" onchange="updateSingleBikeBase('${b.id}', 'km', this.value)">
             </div>
             <div>
               <label style="margin-top:0;">Basis-HM (hm)</label>
-              <input type="number" step="1" min="0" value="${parseInt(b.baseHm || 0, 10)}" onchange="updateSingleBikeBase('${b.id}', 'hm', this.value)">
+              <input type="number" step="1" min="0" value="${parseInt(b.baseHm \vert{}\vert{} 0, 10)}" onchange="updateSingleBikeBase('${b.id}', 'hm', this.value)">
             </div>
             <div>
               <label style="margin-top:0;">Basis-Zeit (Std. & Min.)</label>
@@ -2497,8 +2538,7 @@
       const parsed = parseInt(val, 10);
       if (!isNaN(parsed)) b.baseHm = Math.max(0, parsed);
     } else if (type === 'time') {
-      const h = document.getElementById(`base-h-${bikeId}`).value;
-      const m = document.getElementById(`base-m-${bikeId}`).value;
+      const h = document.getElementById(`base-h-${bikeId}`).value; const m = document.getElementById(`base-m-${bikeId}`).value;
       b.baseHours = hmToDecimalHours(h, m);
     }
     saveData();
@@ -2560,82 +2600,9 @@
 
     const titleEl = document.getElementById('chart-main-title');
     if (metric === 'km') {
-      titleEl.innerHTML = `${svgIcon('chart')} Kilometer-Vergleich & Gesamtstand`;
-    } else if (metric === 'hours') {
-      titleEl.innerHTML = `${svgIcon('clock')} Betriebsstunden-Vergleich & Gesamtzeit`;
+      titleEl.innerHTML = `${svgIcon('chart')} Kilometer-Vergleich & Gesamtstand`; } else if (metric === 'hours') { titleEl.innerHTML = `${svgIcon('clock')} Betriebsstunden-Vergleich & Gesamtzeit`;
     } else {
-      titleEl.innerHTML = `${svgIcon('mountain')} Höhenmeter-Vergleich & Gesamt-HM`;
-    }
-
-    renderChart();
-  }
-
-  function renderChart() {
-    const canvas = document.getElementById('kmBarChart');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-
-    const bikesList = getOrderedBikes();
-    const labels = bikesList.map(b => b.name);
-    const rawColors = bikesList.map(b => b.color || '#1e3a8a');
-
-    let baseValues = [];
-    let tourValues = [];
-    let totalValues = [];
-
-    if (activeChartMetric === 'km') {
-      baseValues = bikesList.map(b => parseFloat(b.baseKm || 0));
-      tourValues = bikesList.map(b => getBikeTourKm(b.id));
-    } else if (activeChartMetric === 'hours') {
-      baseValues = bikesList.map(b => parseFloat(b.baseHours || 0));
-      tourValues = bikesList.map(b => getBikeTourHours(b.id));
-    } else {
-      baseValues = bikesList.map(b => parseInt(b.baseHm || 0, 10));
-      tourValues = bikesList.map(b => getBikeTourHm(b.id));
-    }
-
-    totalValues = bikesList.map((b, i) => baseValues[i] + tourValues[i]);
-
-    const grandTotal = totalValues.reduce((s, v) => s + v, 0);
-    const grandBase = baseValues.reduce((s, v) => s + v, 0);
-    const grandTour = tourValues.reduce((s, v) => s + v, 0);
-
-    labels.push('Gesamtbestand');
-    totalValues.push(grandTotal);
-    baseValues.push(grandBase);
-    tourValues.push(grandTour);
-    rawColors.push('#047857');
-
-    const formatMetricValue = (val) => {
-      if (activeChartMetric === 'km') {
-        return val.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' km';
-      } else if (activeChartMetric === 'hours') {
-        return formatDurationHM(val);
-      } else {
-        return Math.round(val).toLocaleString('de-DE') + ' hm';
-      }
-    };
-
-    const bgGradients = rawColors.map(hex => {
-      const grad = ctx.createLinearGradient(0, 0, 0, 280);
-      grad.addColorStop(0, hexToRgba(hex, 0.96));
-      grad.addColorStop(1, hexToRgba(hex, 0.35));
-      return grad;
-    });
-
-    const topValueLabelsPlugin = {
-      id: 'topValueLabels',
-      afterDatasetsDraw(chart) {
-        const { ctx: c } = chart;
-        c.save();
-        const meta = chart.getDatasetMeta(0);
-        meta.data.forEach((bar, index) => {
-          const val = totalValues[index];
-          const isTotalBar = index === totalValues.length - 1;
-          const pct = (!isTotalBar && grandTotal > 0) ? Math.round((val / grandTotal) * 100) : null;
-
-          const mainText = formatMetricValue(val);
-          const subText = pct !== null ? `${pct}% Anteil` : '100% Gesamt';
+      titleEl.innerHTML = `${svgIcon('mountain')} Höhenmeter-Vergleich & Gesamt-HM`; }  renderChart(); }  function renderChart() { const canvas = document.getElementById('kmBarChart'); if (!canvas) return; const ctx = canvas.getContext('2d');  const bikesList = getOrderedBikes(); const labels = bikesList.map(b => b.name); const rawColors = bikesList.map(b => b.color \vert{}\vert{} '#1e3a8a');  let baseValues = []; let tourValues = []; let totalValues = [];  if (activeChartMetric === 'km') { baseValues = bikesList.map(b => parseFloat(b.baseKm \vert{}\vert{} 0)); tourValues = bikesList.map(b => getBikeTourKm(b.id)); } else if (activeChartMetric === 'hours') { baseValues = bikesList.map(b => parseFloat(b.baseHours \vert{}\vert{} 0)); tourValues = bikesList.map(b => getBikeTourHours(b.id)); } else { baseValues = bikesList.map(b => parseInt(b.baseHm \vert{}\vert{} 0, 10)); tourValues = bikesList.map(b => getBikeTourHm(b.id)); }  totalValues = bikesList.map((b, i) => baseValues[i] + tourValues[i]);  const grandTotal = totalValues.reduce((s, v) => s + v, 0); const grandBase = baseValues.reduce((s, v) => s + v, 0); const grandTour = tourValues.reduce((s, v) => s + v, 0);  labels.push('Gesamtbestand'); totalValues.push(grandTotal); baseValues.push(grandBase); tourValues.push(grandTour); rawColors.push('#047857');  const formatMetricValue = (val) => { if (activeChartMetric === 'km') { return val.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' km'; } else if (activeChartMetric === 'hours') { return formatDurationHM(val); } else { return Math.round(val).toLocaleString('de-DE') + ' hm'; } };  const bgGradients = rawColors.map(hex => { const grad = ctx.createLinearGradient(0, 0, 0, 280); grad.addColorStop(0, hexToRgba(hex, 0.96)); grad.addColorStop(1, hexToRgba(hex, 0.35)); return grad; });  const topValueLabelsPlugin = { id: 'topValueLabels', afterDatasetsDraw(chart) { const { ctx: c } = chart; c.save(); const meta = chart.getDatasetMeta(0); meta.data.forEach((bar, index) => { const val = totalValues[index]; const isTotalBar = index === totalValues.length - 1; const pct = (!isTotalBar && grandTotal > 0) ? Math.round((val / grandTotal) * 100) : null;  const mainText = formatMetricValue(val); const subText = pct !== null ? `${pct}% Anteil` : '100% Gesamt';
 
           c.textAlign = 'center';
           c.textBaseline = 'bottom';
@@ -2691,65 +2658,7 @@
             callbacks: {
               label(context) {
                 const idx = context.dataIndex;
-                return ` Gesamt: ${formatMetricValue(totalValues[idx])}`;
-              },
-              afterLabel(context) {
-                const idx = context.dataIndex;
-                const bFormatted = formatMetricValue(baseValues[idx]);
-                const tFormatted = formatMetricValue(tourValues[idx]);
-                return `   • Basis-Stand: ${bFormatted}\n   • Gefahrene Touren: +${tFormatted}`;
-              }
-            }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            suggestedMax: maxVal * 1.18,
-            border: { display: false },
-            grid: {
-              color: 'rgba(203, 213, 225, 0.12)',
-              borderDash: [4, 4]
-            },
-            ticks: {
-              color: '#cbd5e1',
-              font: { size: 11, weight: '500' },
-              callback(value) {
-                if (activeChartMetric === 'km') return value.toLocaleString('de-DE') + ' km';
-                if (activeChartMetric === 'hours') return value.toLocaleString('de-DE') + ' h';
-                return value.toLocaleString('de-DE') + ' hm';
-              }
-            }
-          },
-          x: {
-            border: { color: '#4d5b6b' },
-            grid: { display: false },
-            ticks: {
-              color: '#f8fafc',
-              font: { size: 12, weight: '700' }
-            }
-          }
-        }
-      }
-    });
-  }
-
-  function renderServiceTimers() {
-    const bike = appData.bikes[activeBike];
-    const totalH = getBikeTotalHours(activeBike);
-    const since50 = Math.max(0, totalH - parseFloat(bike.last50hResetAt || 0));
-    const since200 = Math.max(0, totalH - parseFloat(bike.last200hResetAt || 0));
-
-    const pct50 = Math.min(100, (since50 / 50) * 100);
-    const pct200 = Math.min(100, (since200 / 200) * 100);
-
-    const color50 = since50 >= 50 ? 'var(--danger)' : (since50 >= 40 ? 'var(--warning)' : 'var(--success)');
-    const color200 = since200 >= 200 ? 'var(--danger)' : (since200 >= 170 ? 'var(--warning)' : 'var(--success)');
-
-    const rem50 = Math.max(0, 50 - since50);
-    const rem200 = Math.max(0, 200 - since200);
-
-    document.getElementById('maint-total-hours-badge').textContent = `Gesamt-Betriebszeit: ${formatDurationHM(totalH)}`;
+                return ` Gesamt: ${formatMetricValue(totalValues[idx])}`; }, afterLabel(context) { const idx = context.dataIndex; const bFormatted = formatMetricValue(baseValues[idx]); const tFormatted = formatMetricValue(tourValues[idx]); return `   • Basis-Stand: ${bFormatted}\n   • Gefahrene Touren: +${tFormatted}`; } } } }, scales: { y: { beginAtZero: true, suggestedMax: maxVal * 1.18, border: { display: false }, grid: { color: 'rgba(203, 213, 225, 0.12)', borderDash: [4, 4] }, ticks: { color: '#cbd5e1', font: { size: 11, weight: '500' }, callback(value) { if (activeChartMetric === 'km') return value.toLocaleString('de-DE') + ' km'; if (activeChartMetric === 'hours') return value.toLocaleString('de-DE') + ' h'; return value.toLocaleString('de-DE') + ' hm'; } } }, x: { border: { color: '#4d5b6b' }, grid: { display: false }, ticks: { color: '#f8fafc', font: { size: 12, weight: '700' } } } } } }); }  function renderServiceTimers() { const bike = appData.bikes[activeBike]; const totalH = getBikeTotalHours(activeBike); const since50 = Math.max(0, totalH - parseFloat(bike.last50hResetAt \vert{}\vert{} 0)); const since200 = Math.max(0, totalH - parseFloat(bike.last200hResetAt \vert{}\vert{} 0));  const pct50 = Math.min(100, (since50 / 50) * 100); const pct200 = Math.min(100, (since200 / 200) * 100);  const color50 = since50 >= 50 ? 'var(--danger)' : (since50 >= 40 ? 'var(--warning)' : 'var(--success)'); const color200 = since200 >= 200 ? 'var(--danger)' : (since200 >= 170 ? 'var(--warning)' : 'var(--success)');  const rem50 = Math.max(0, 50 - since50); const rem200 = Math.max(0, 200 - since200);  document.getElementById('maint-total-hours-badge').textContent = `Gesamt-Betriebszeit: ${formatDurationHM(totalH)}`;
 
     const detailHtml = `
       <div class="service-timer-box">
@@ -2758,1281 +2667,6 @@
           <span class="badge" style="background:${color50}; color:#fff;">${formatDurationHM(since50)} / 50h</span>
         </div>
         <div class="progress-track">
-          <div class="progress-fill" style="width:${pct50}%; background:${color50};"></div>
+          <div class="progress-fill" style="width:${pct50}\%; background:${color50};"></div>
         </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.82rem; color:var(--text-muted); margin-top:6px;">
-          <span class="inline-meta">${since50 >= 50 ? `${svgIcon('alert', 'icon-sm')} Service jetzt fällig!` : `Noch ${formatDurationHM(rem50)} bis zum nächsten 50h-Service`}</span>
-          <button class="btn btn-success" onclick="resetServiceTimer(50)">${svgIcon('refresh', 'icon-sm')} 50h Reset</button>
-        </div>
-      </div>
-
-      <div class="service-timer-box">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <strong class="inline-meta">${svgIcon('sliders', 'icon-sm')} 200h Service (Dämpferkartusche & Dichtungen)</strong>
-          <span class="badge" style="background:${color200}; color:#fff;">${formatDurationHM(since200)} / 200h</span>
-        </div>
-        <div class="progress-track">
-          <div class="progress-fill" style="width:${pct200}%; background:${color200};"></div>
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.82rem; color:var(--text-muted); margin-top:6px;">
-          <span class="inline-meta">${since200 >= 200 ? `${svgIcon('alert', 'icon-sm')} Großer Service fällig!` : `Noch ${formatDurationHM(rem200)} bis zum 200h-Service`}</span>
-          <button class="btn btn-success" onclick="resetServiceTimer(200)">${svgIcon('refresh', 'icon-sm')} 200h Reset</button>
-        </div>
-      </div>
-    `;
-    document.getElementById('service-timers-detail').innerHTML = detailHtml;
-
-    document.getElementById('dashboard-service-bars').innerHTML = `
-      <div class="service-timer-box" style="padding:10px 12px;">
-        <div style="display:flex; justify-content:space-between; font-size:0.82rem; flex-wrap:wrap; gap:6px;">
-          <span class="inline-meta">${svgIcon('clock', 'icon-sm')} <strong>50h Intervall:</strong> ${formatDurationHM(since50)} / 50h</span>
-          <span><strong>200h Intervall:</strong> ${formatDurationHM(since200)} / 200h</span>
-        </div>
-        <div class="progress-track" style="height:7px; margin:6px 0 2px;">
-          <div class="progress-fill" style="width:${pct50}%; background:${color50};"></div>
-        </div>
-      </div>
-    `;
-  }
-
-  function resetServiceTimer(intervalType) {
-    const bike = appData.bikes[activeBike];
-    const currentHours = getBikeTotalHours(activeBike);
-    const currentKm = Number(getBikeTotalKm(activeBike).toFixed(1));
-    const today = new Date().toISOString().split('T')[0];
-
-    if (intervalType === 50) {
-      bike.last50hResetAt = currentHours;
-      bike.maintenance.unshift({
-        id: Date.now(),
-        status: 'done',
-        date: today,
-        km: currentKm,
-        title: `50h Fahrwerks-Service durchgeführt (bei ${formatDurationHM(currentHours)})`,
-        notes: 'Timer auf 0h 00m zurückgesetzt'
-      });
-    } else if (intervalType === 200) {
-      bike.last200hResetAt = currentHours;
-      bike.last50hResetAt = currentHours;
-      bike.maintenance.unshift({
-        id: Date.now(),
-        status: 'done',
-        date: today,
-        km: currentKm,
-        title: `200h Großer Fahrwerks-Service durchgeführt (bei ${formatDurationHM(currentHours)})`,
-        notes: '50h & 200h Timer auf 0h 00m zurückgesetzt'
-      });
-    }
-    saveData();
-  }
-
-  function previewTourEnergy() {
-    const bike = document.getElementById('tour-bike').value;
-    const bikeObj = appData.bikes[bike];
-    const km = parseFloat(document.getElementById('tour-km').value);
-    const startRaw = document.getElementById('tour-battery-start').value;
-    const endRaw = document.getElementById('tour-battery').value;
-    const previewEl = document.getElementById('tour-energy-preview-text');
-
-    if (bikeObj && (!bikeObj.batteryWh || bikeObj.batteryWh <= 0)) {
-      previewEl.textContent = 'Bio-Bike ohne Akku ausgewählt (keine Wh-Berechnung erforderlich).';
-      previewEl.style.color = 'var(--text-muted)';
-      return;
-    }
-
-    if (!km || km <= 0 || endRaw === '') {
-      previewEl.textContent = 'Distanz und Rest-Akku (%) eingeben für Live-Berechnung...';
-      previewEl.style.color = 'var(--text-muted)';
-      return;
-    }
-
-    const metrics = computeTourMetrics({
-      bike,
-      km,
-      batteryStart: startRaw !== '' ? parseInt(startRaw, 10) : 100,
-      batteryLeft: parseInt(endRaw, 10)
-    });
-
-    if (!metrics.hasConsumption) {
-      previewEl.textContent = 'Start-Akku muss größer als der Rest-Akku sein.';
-      previewEl.style.color = '#f59e0b';
-      return;
-    }
-
-    const whKmStr = metrics.whPerKm.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-    const rangeStr = Math.round(metrics.estRange100);
-    const usedWhStr = Math.round(metrics.usedWh);
-
-    previewEl.innerHTML = `<span class="inline-meta">${svgIcon('zap', 'icon-sm')} <strong>${whKmStr} Wh/km</strong> (-${usedWhStr} Wh)</span> &nbsp;&bull;&nbsp; <span class="inline-meta">${svgIcon('flag', 'icon-sm')} 100%-Reichweite: <strong>ca. ${rangeStr} km</strong></span>`;
-    previewEl.style.color = '#10b981';
-  }
-
-  // 1. TOUREN: Hinzufügen, Bearbeiten, Filtern, Sortieren & Löschen
-  function saveTour(e) {
-    e.preventDefault();
-    const bike = document.getElementById('tour-bike').value;
-    const date = document.getElementById('tour-date').value;
-    const km = parseFloat(document.getElementById('tour-km').value);
-    const hmRaw = document.getElementById('tour-hm').value;
-    const hoursH = document.getElementById('tour-hours-h').value;
-    const hoursM = document.getElementById('tour-hours-m').value;
-    const startRaw = document.getElementById('tour-battery-start').value;
-    const batteryRaw = document.getElementById('tour-battery').value;
-    const komootId = document.getElementById('tour-komoot-id').value || null;
-
-    const hm = hmRaw !== '' ? Math.max(0, parseInt(hmRaw, 10)) : 0;
-    const hours = hmToDecimalHours(hoursH, hoursM);
-    const batteryStart = startRaw !== '' ? Math.min(100, Math.max(1, parseInt(startRaw, 10))) : 100;
-    const batteryLeft = batteryRaw !== '' ? Math.min(100, Math.max(0, parseInt(batteryRaw, 10))) : null;
-    const note = document.getElementById('tour-note').value.trim() || 'Ausfahrt';
-
-    const fb = document.getElementById('gpx-import-feedback');
-    if (fb) fb.classList.add('hidden');
-
-    if (editingTourId !== null) {
-      const idx = appData.tours.findIndex(t => t.id === editingTourId);
-      if (idx !== -1) {
-        appData.tours[idx] = {
-          ...appData.tours[idx],
-          bike,
-          date,
-          km,
-          hm,
-          hours,
-          batteryStart,
-          batteryLeft,
-          note
-        };
-      }
-      cancelTourEdit();
-    } else {
-      appData.tours.unshift({
-        id: Date.now(),
-        komootId,
-        bike,
-        date,
-        km,
-        hm,
-        hours,
-        batteryStart,
-        batteryLeft,
-        note
-      });
-      document.getElementById('tour-komoot-id').value = '';
-      document.getElementById('tour-km').value = '';
-      document.getElementById('tour-hm').value = '';
-      document.getElementById('tour-hours-h').value = '';
-      document.getElementById('tour-hours-m').value = '';
-      document.getElementById('tour-battery-start').value = '100';
-      document.getElementById('tour-battery').value = '';
-      document.getElementById('tour-note').value = '';
-      const inboxSel = document.getElementById('komoot-inbox-select');
-      if (inboxSel) inboxSel.value = '';
-      previewTourEnergy();
-      toggleTourFormDropdown(false);
-    }
-
-    saveData();
-  }
-
-  function editTour(id) {
-    const t = appData.tours.find(item => item.id === id);
-    if (!t) return;
-
-    editingTourId = id;
-    toggleTourFormDropdown(true);
-
-    document.getElementById('tour-komoot-id').value = t.komootId || '';
-    document.getElementById('tour-bike').value = t.bike;
-    document.getElementById('tour-date').value = t.date;
-    document.getElementById('tour-km').value = t.km;
-    document.getElementById('tour-hm').value = t.hm || '';
-
-    const hmObj = decimalHoursToHM(t.hours || 0);
-    document.getElementById('tour-hours-h').value = hmObj.totalMinutes > 0 ? hmObj.h : '';
-    document.getElementById('tour-hours-m').value = hmObj.totalMinutes > 0 ? hmObj.m : '';
-
-    document.getElementById('tour-battery-start').value = t.batteryStart !== undefined ? t.batteryStart : 100;
-    document.getElementById('tour-battery').value = (t.batteryLeft !== null && t.batteryLeft !== undefined) ? t.batteryLeft : '';
-    document.getElementById('tour-note').value = t.note || '';
-
-    document.getElementById('tour-form-title').innerHTML = `${svgIcon('edit')} Tour bearbeiten`;
-    document.getElementById('tour-submit-btn').innerHTML = `${svgIcon('check')} Änderung speichern`;
-    document.getElementById('tour-cancel-btn').classList.remove('hidden');
-
-    previewTourEnergy();
-    renderTours();
-    document.getElementById('tour-form-card').scrollIntoView({ behavior: 'smooth' });
-    document.getElementById('tour-km').focus();
-  }
-
-  function cancelTourEdit() {
-    editingTourId = null;
-    const kmInput = document.getElementById('tour-km');
-    if (!kmInput) return;
-
-    document.getElementById('tour-komoot-id').value = '';
-    document.getElementById('tour-bike').value = activeBike;
-    document.getElementById('tour-date').value = new Date().toISOString().split('T')[0];
-    kmInput.value = '';
-    document.getElementById('tour-hm').value = '';
-    document.getElementById('tour-hours-h').value = '';
-    document.getElementById('tour-hours-m').value = '';
-    document.getElementById('tour-battery-start').value = '100';
-    document.getElementById('tour-battery').value = '';
-    document.getElementById('tour-note').value = '';
-
-    const fb = document.getElementById('gpx-import-feedback');
-    if (fb) fb.classList.add('hidden');
-
-    document.getElementById('tour-form-title').innerHTML = `${svgIcon('plus')} Neue Tour, Höhenmeter, Fahrzeit & Akku`;
-    document.getElementById('tour-submit-btn').innerHTML = `${svgIcon('save')} Tour speichern & Zeit/KM addieren`;
-    document.getElementById('tour-cancel-btn').classList.add('hidden');
-
-    toggleTourFormDropdown(false);
-    previewTourEnergy();
-    renderTours();
-  }
-
-  function deleteTour(id) {
-    if (editingTourId === id) {
-      cancelTourEdit();
-    }
-    appData.tours = appData.tours.filter(t => t.id !== id);
-    saveData();
-  }
-
-  function renderTours() {
-    const tbody = document.getElementById('tours-table-body');
-    const summaryEl = document.getElementById('tours-filter-summary');
-    const filterBike = (document.getElementById('tour-filter-bike')?.value) || 'all';
-    const sortBy = (document.getElementById('tour-sort-by')?.value) || 'date_desc';
-    const searchQuery = ((document.getElementById('tour-search-note')?.value) || '').trim().toLowerCase();
-
-    if (appData.tours.length === 0) {
-      if (summaryEl) summaryEl.innerHTML = `<span>0 Touren gespeichert</span><span>Basis-Stände aktiv</span>`;
-      tbody.innerHTML = `<tr><td colspan="7" style="color:var(--text-muted); text-align:center;">Noch keine Einzel-Touren eingetragen. Die Basis-Stände sind aktiv.</td></tr>`;
-      return;
-    }
-
-    let filtered = appData.tours.filter(t => {
-      if (filterBike !== 'all' && t.bike !== filterBike) return false;
-      if (searchQuery && !(t.note || '').toLowerCase().includes(searchQuery) && !(t.date || '').includes(searchQuery)) return false;
-      return true;
-    });
-
-    filtered.sort((a, b) => {
-      if (sortBy === 'date_desc') return String(b.date).localeCompare(String(a.date)) || (b.id - a.id);
-      if (sortBy === 'date_asc') return String(a.date).localeCompare(String(b.date)) || (a.id - b.id);
-      if (sortBy === 'km_desc') return (parseFloat(b.km) || 0) - (parseFloat(a.km) || 0);
-      if (sortBy === 'km_asc') return (parseFloat(a.km) || 0) - (parseFloat(b.km) || 0);
-      if (sortBy === 'hm_desc') return (parseInt(b.hm || 0, 10)) - (parseInt(a.hm || 0, 10));
-      if (sortBy === 'hours_desc') return (parseFloat(b.hours) || 0) - (parseFloat(a.hours) || 0);
-      return 0;
-    });
-
-    const sumKm = filtered.reduce((s, t) => s + parseFloat(t.km || 0), 0);
-    const sumHm = filtered.reduce((s, t) => s + parseInt(t.hm || 0, 10), 0);
-    const sumHours = filtered.reduce((s, t) => s + parseFloat(t.hours || 0), 0);
-
-    if (summaryEl) {
-      summaryEl.innerHTML = `
-        <span><strong>${filtered.length}</strong> ${filtered.length === 1 ? 'Tour' : 'Touren'} in Auswahl</span>
-        <span class="inline-meta">
-          ${svgIcon('route', 'icon-sm')} <strong>${formatKm(sumKm)}</strong> &nbsp;&bull;&nbsp;
-          ${svgIcon('clock', 'icon-sm')} <strong>${formatDurationHM(sumHours)}</strong> &nbsp;&bull;&nbsp;
-          ${svgIcon('mountain', 'icon-sm')} <strong>${sumHm.toLocaleString('de-DE')} hm</strong>
-        </span>
-      `;
-    }
-
-    if (filtered.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" style="color:var(--text-muted); text-align:center;">Keine Touren für diesen Filter gefunden.</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = filtered.map(t => {
-      const bikeObj = appData.bikes[t.bike];
-      const bName = bikeObj ? bikeObj.name : t.bike;
-      const bColor = bikeObj ? bikeObj.color : '#64748b';
-      const m = computeTourMetrics(t);
-
-      let battHtml = '<span>-</span>';
-      let effHtml = '<span>-</span>';
-
-      if (m.hasBattery) {
-        const badgeClass = m.endPct >= 50 ? 'badge-ok' : (m.endPct >= 20 ? 'badge-due' : 'badge-low');
-        const startHint = m.startPct < 100 ? `${m.startPct}% &rarr; ` : '';
-        battHtml = `<span class="badge ${badgeClass}">${svgIcon('battery', 'icon-sm')} ${startHint}${m.endPct}% (${m.remWh} Wh)</span>`;
-
-        if (m.hasConsumption) {
-          const whKmStr = m.whPerKm.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-          const rangeStr = Math.round(m.estRange100);
-          effHtml = `
-            <span class="inline-meta">
-              ${svgIcon('zap', 'icon-sm')} <strong>${whKmStr} Wh/km</strong> (-${Math.round(m.usedWh)} Wh) &nbsp;&bull;&nbsp;
-              ${svgIcon('flag', 'icon-sm')} 100%: <strong>ca. ${rangeStr} km</strong>
-            </span>
-          `;
-        }
-      }
-
-      const distPart = `${svgIcon('route', 'icon-sm')} <strong>+${t.km.toLocaleString('de-DE', {minimumFractionDigits:1})} km</strong>`;
-      const hoursPart = (t.hours && t.hours > 0) ? `${svgIcon('clock', 'icon-sm')} <strong>${formatDurationHM(t.hours)}</strong>` : '';
-      const hmPart = t.hm ? `${svgIcon('mountain', 'icon-sm')} <strong>${Number(t.hm).toLocaleString('de-DE')} hm</strong>` : '';
-      const statsInline = [distPart, hoursPart, hmPart].filter(Boolean).join(' &nbsp;&bull;&nbsp; ');
-
-      return `
-        <tr class="${editingTourId === t.id ? 'editing-row' : ''}">
-          <td style="white-space:nowrap;"><span class="inline-meta">${svgIcon('calendar', 'icon-sm')} <strong>${t.date}</strong></span></td>
-          <td style="white-space:nowrap;"><span class="badge" style="background:${bColor};color:#fff;">${bName}</span></td>
-          <td><strong>${t.note}</strong></td>
-          <td><span class="inline-meta" style="flex-wrap:wrap;">${statsInline}</span></td>
-          <td style="white-space:nowrap;">${battHtml}</td>
-          <td>${effHtml}</td>
-          <td style="text-align:right; white-space:nowrap;">
-            <button class="btn btn-edit btn-icon" onclick="editTour(${t.id})" title="Tour bearbeiten">${svgIcon('edit', 'icon-sm')}</button>
-            <button class="btn btn-danger btn-icon" onclick="deleteTour(${t.id})" title="Tour löschen">${svgIcon('trash', 'icon-sm')}</button>
-          </td>
-        </tr>
-      `;
-    }).join('');
-  }
-
-  // Fahrwerk-Setup & SAG-Rechner
-  function renderSuspension() {
-    const susp = appData.bikes[activeBike].suspension;
-    document.getElementById('susp-fork-title').textContent = susp.forkModel || 'Federgabel';
-    document.getElementById('susp-fork-psi').value = susp.forkPsi || '';
-    document.getElementById('susp-fork-sag').value = susp.forkSag || '';
-    document.getElementById('susp-fork-tokens').value = susp.forkTokens || '';
-    document.getElementById('susp-fork-rebound').value = susp.forkRebound || '';
-    document.getElementById('susp-fork-lsc').value = susp.forkLsc || '';
-    document.getElementById('susp-fork-hsc').value = susp.forkHsc || '';
-    document.getElementById('susp-fork-notes').value = susp.forkNotes || '';
-
-    document.getElementById('susp-shock-title').textContent = susp.shockModel || 'Dämpfer';
-    document.getElementById('susp-shock-psi').value = susp.shockPsi || '';
-    document.getElementById('susp-shock-sag').value = susp.shockSag || '';
-    document.getElementById('susp-shock-tokens').value = susp.shockTokens || '';
-    document.getElementById('susp-shock-rebound').value = susp.shockRebound || '';
-    document.getElementById('susp-shock-lsc').value = susp.shockLsc || '';
-    document.getElementById('susp-shock-hsc').value = susp.shockHsc || '';
-    document.getElementById('susp-shock-notes').value = susp.shockNotes || '';
-
-    document.getElementById('calc-fork-travel').value = susp.forkTravelMm || 150;
-    document.getElementById('calc-shock-stroke').value = susp.shockStrokeMm || 55;
-
-    if (susp.hasShock) {
-      document.getElementById('susp-shock-body').classList.remove('hidden');
-      document.getElementById('susp-no-shock-msg').classList.add('hidden');
-      document.getElementById('calc-shock-container').classList.remove('hidden');
-    } else {
-      document.getElementById('susp-shock-body').classList.add('hidden');
-      document.getElementById('susp-no-shock-msg').classList.remove('hidden');
-      document.getElementById('calc-shock-container').classList.add('hidden');
-    }
-
-    document.getElementById('susp-tire-front').value = susp.tireFront || '';
-    document.getElementById('susp-tire-rear').value = susp.tireRear || '';
-    document.getElementById('susp-rider-weight').value = susp.riderWeight || '';
-
-    calculateSagPreview();
-
-    const presetList = document.getElementById('susp-presets-list');
-    const presets = susp.presets || [];
-    if (presets.length === 0) {
-      presetList.innerHTML = `<p style="color:var(--text-muted); font-size:0.88rem;">Noch keine Setup-Presets gespeichert. Du kannst oben z. B. ein Setup für "Trail Trocken" oder "Tour" ablegen.</p>`;
-    } else {
-      presetList.innerHTML = presets.map((p, idx) => `
-        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-input); border:1px solid var(--border); border-radius:8px; padding:10px 12px; margin-bottom:8px;">
-          <div>
-            <strong>${p.name}</strong>
-            <div style="font-size:0.8rem; color:var(--text-muted);">Gabel: ${p.forkPsi} (SAG: ${p.forkSag}) ${susp.hasShock ? `&bull; Dämpfer: ${p.shockPsi} (SAG: ${p.shockSag})` : ''} &bull; Reifen: ${p.tireFront}/${p.tireRear}</div>
-          </div>
-          <div style="display:flex; gap:6px;">
-            <button class="btn btn-success" onclick="applySuspensionPreset(${idx})" title="Preset laden">${svgIcon('check', 'icon-sm')} Laden</button>
-            <button class="btn btn-danger btn-icon" onclick="deleteSuspensionPreset(${idx})" title="Preset löschen">${svgIcon('trash', 'icon-sm')}</button>
-          </div>
-        </div>
-      `).join('');
-    }
-  }
-
-  function calculateSagPreview() {
-    const forkTravel = parseFloat(document.getElementById('calc-fork-travel').value);
-    const forkMeas = parseFloat(document.getElementById('calc-fork-measured').value);
-    const forkResEl = document.getElementById('calc-fork-result');
-
-    if (forkTravel > 0 && !isNaN(forkMeas) && forkMeas >= 0) {
-      const pct = (forkMeas / forkTravel) * 100;
-      forkResEl.textContent = `${pct.toFixed(1)}% (${forkMeas} mm)`;
-      forkResEl.style.color = (pct >= 14 && pct <= 24) ? '#10b981' : '#f59e0b';
-    } else {
-      forkResEl.textContent = '-- %';
-      forkResEl.style.color = 'var(--text-main)';
-    }
-
-    const shockStroke = parseFloat(document.getElementById('calc-shock-stroke').value);
-    const shockMeas = parseFloat(document.getElementById('calc-shock-measured').value);
-    const shockResEl = document.getElementById('calc-shock-result');
-
-    if (shockStroke > 0 && !isNaN(shockMeas) && shockMeas >= 0) {
-      const pct = (shockMeas / shockStroke) * 100;
-      shockResEl.textContent = `${pct.toFixed(1)}% (${shockMeas} mm)`;
-      shockResEl.style.color = (pct >= 24 && pct <= 33) ? '#10b981' : '#f59e0b';
-    } else {
-      shockResEl.textContent = '-- %';
-      shockResEl.style.color = 'var(--text-main)';
-    }
-  }
-
-  function applyCalculatedSag(target) {
-    const susp = appData.bikes[activeBike].suspension;
-    if (target === 'fork') {
-      const forkTravel = parseFloat(document.getElementById('calc-fork-travel').value);
-      const forkMeas = parseFloat(document.getElementById('calc-fork-measured').value);
-      if (!forkTravel || isNaN(forkMeas)) {
-        alert('Bitte erst den gemessenen O-Ring-Abstand der Gabel in mm eingeben.');
-        return;
-      }
-      const pct = (forkMeas / forkTravel) * 100;
-      susp.forkTravelMm = forkTravel;
-      susp.forkSag = `${pct.toFixed(1)}% (${forkMeas} mm)`;
-      saveData();
-    } else {
-      const shockStroke = parseFloat(document.getElementById('calc-shock-stroke').value);
-      const shockMeas = parseFloat(document.getElementById('calc-shock-measured').value);
-      if (!shockStroke || isNaN(shockMeas)) {
-        alert('Bitte erst den gemessenen O-Ring-Abstand des Dämpfers in mm eingeben.');
-        return;
-      }
-      const pct = (shockMeas / shockStroke) * 100;
-      susp.shockStrokeMm = shockStroke;
-      susp.shockSag = `${pct.toFixed(1)}% (${shockMeas} mm)`;
-      saveData();
-    }
-  }
-
-  function saveSuspension() {
-    const susp = appData.bikes[activeBike].suspension;
-    susp.forkPsi = document.getElementById('susp-fork-psi').value;
-    susp.forkSag = document.getElementById('susp-fork-sag').value;
-    susp.forkTokens = document.getElementById('susp-fork-tokens').value;
-    susp.forkRebound = document.getElementById('susp-fork-rebound').value;
-    susp.forkLsc = document.getElementById('susp-fork-lsc').value;
-    susp.forkHsc = document.getElementById('susp-fork-hsc').value;
-    susp.forkNotes = document.getElementById('susp-fork-notes').value;
-
-    susp.shockPsi = document.getElementById('susp-shock-psi').value;
-    susp.shockSag = document.getElementById('susp-shock-sag').value;
-    susp.shockTokens = document.getElementById('susp-shock-tokens').value;
-    susp.shockRebound = document.getElementById('susp-shock-rebound').value;
-    susp.shockLsc = document.getElementById('susp-shock-lsc').value;
-    susp.shockHsc = document.getElementById('susp-shock-hsc').value;
-    susp.shockNotes = document.getElementById('susp-shock-notes').value;
-
-    susp.tireFront = document.getElementById('susp-tire-front').value;
-    susp.tireRear = document.getElementById('susp-tire-rear').value;
-    susp.riderWeight = document.getElementById('susp-rider-weight').value;
-
-    saveData();
-  }
-
-  function toggleShockForBike() {
-    appData.bikes[activeBike].suspension.hasShock = !appData.bikes[activeBike].suspension.hasShock;
-    saveData();
-  }
-
-  function saveSuspensionPreset() {
-    const nameInput = document.getElementById('preset-name');
-    const name = nameInput.value.trim();
-    if (!name) {
-      alert('Bitte gib einen Namen für das Setup-Preset ein (z. B. Trail Trocken).');
-      return;
-    }
-    const susp = appData.bikes[activeBike].suspension;
-    if (!susp.presets) susp.presets = [];
-    susp.presets.unshift({
-      name,
-      forkPsi: susp.forkPsi,
-      forkSag: susp.forkSag,
-      forkTokens: susp.forkTokens,
-      forkRebound: susp.forkRebound,
-      forkLsc: susp.forkLsc,
-      forkHsc: susp.forkHsc,
-      forkNotes: susp.forkNotes,
-      shockPsi: susp.shockPsi,
-      shockSag: susp.shockSag,
-      shockTokens: susp.shockTokens,
-      shockRebound: susp.shockRebound,
-      shockLsc: susp.shockLsc,
-      shockHsc: susp.shockHsc,
-      shockNotes: susp.shockNotes,
-      tireFront: susp.tireFront,
-      tireRear: susp.tireRear
-    });
-    nameInput.value = '';
-    saveData();
-  }
-
-  function applySuspensionPreset(idx) {
-    const susp = appData.bikes[activeBike].suspension;
-    const p = susp.presets[idx];
-    if (!p) return;
-    Object.assign(susp, {
-      forkPsi: p.forkPsi,
-      forkSag: p.forkSag,
-      forkTokens: p.forkTokens,
-      forkRebound: p.forkRebound,
-      forkLsc: p.forkLsc,
-      forkHsc: p.forkHsc,
-      forkNotes: p.forkNotes,
-      shockPsi: p.shockPsi,
-      shockSag: p.shockSag,
-      shockTokens: p.shockTokens,
-      shockRebound: p.shockRebound,
-      shockLsc: p.shockLsc,
-      shockHsc: p.shockHsc,
-      shockNotes: p.shockNotes,
-      tireFront: p.tireFront,
-      tireRear: p.tireRear
-    });
-    saveData();
-  }
-
-  function deleteSuspensionPreset(idx) {
-    appData.bikes[activeBike].suspension.presets.splice(idx, 1);
-    saveData();
-  }
-
-  // 2. WARTUNGEN: Hinzufügen, Bearbeiten, Erledigen & Löschen
-  function saveMaintenance(e) {
-    e.preventDefault();
-    const status = document.getElementById('maint-status').value;
-    const date = document.getElementById('maint-date').value;
-    const km = parseFloat(document.getElementById('maint-km').value);
-    const title = document.getElementById('maint-title').value.trim();
-    const notes = document.getElementById('maint-notes').value.trim();
-
-    if (editingMaintId !== null) {
-      const item = appData.bikes[activeBike].maintenance.find(m => m.id === editingMaintId);
-      if (item) {
-        item.status = status;
-        item.date = date;
-        item.km = km;
-        item.title = title;
-        item.notes = notes;
-      }
-      cancelMaintenanceEdit();
-    } else {
-      appData.bikes[activeBike].maintenance.unshift({
-        id: Date.now(),
-        status,
-        date,
-        km,
-        title,
-        notes
-      });
-      document.getElementById('maint-title').value = '';
-      document.getElementById('maint-notes').value = '';
-    }
-
-    saveData();
-  }
-
-  function editMaintenance(id) {
-    const item = appData.bikes[activeBike].maintenance.find(m => m.id === id);
-    if (!item) return;
-
-    switchTab('maintenance');
-    editingMaintId = id;
-    document.getElementById('maint-status').value = item.status;
-    document.getElementById('maint-date').value = item.date;
-    document.getElementById('maint-km').value = item.km;
-    document.getElementById('maint-title').value = item.title || '';
-    document.getElementById('maint-notes').value = item.notes || '';
-
-    document.getElementById('maint-form-title').innerHTML = `${svgIcon('edit')} Wartung bearbeiten (<span class="active-bike-name">${appData.bikes[activeBike].name}</span>)`;
-    document.getElementById('maint-submit-btn').innerHTML = `${svgIcon('check')} Änderung speichern`;
-    document.getElementById('maint-cancel-btn').classList.remove('hidden');
-
-    renderMaintenance();
-    document.getElementById('maint-title').focus();
-  }
-
-  function cancelMaintenanceEdit() {
-    editingMaintId = null;
-    const titleInput = document.getElementById('maint-title');
-    if (!titleInput) return;
-
-    document.getElementById('maint-status').value = 'upcoming';
-    document.getElementById('maint-date').value = new Date().toISOString().split('T')[0];
-    document.getElementById('maint-km').value = '';
-    titleInput.value = '';
-    document.getElementById('maint-notes').value = '';
-
-    document.getElementById('maint-form-title').innerHTML = `${svgIcon('wrench')} Wartung & Service für <span class="active-bike-name">${appData.bikes[activeBike].name}</span> hinzufügen`;
-    document.getElementById('maint-submit-btn').innerHTML = `${svgIcon('save')} Wartung speichern`;
-    document.getElementById('maint-cancel-btn').classList.add('hidden');
-    renderMaintenance();
-  }
-
-  function markMaintenanceDone(id) {
-    const item = appData.bikes[activeBike].maintenance.find(m => m.id === id);
-    if (item) {
-      item.status = 'done';
-      item.date = new Date().toISOString().split('T')[0];
-      item.km = Number(getBikeTotalKm(activeBike).toFixed(1));
-      if (editingMaintId === id) cancelMaintenanceEdit();
-      saveData();
-    }
-  }
-
-  function deleteMaintenance(id) {
-    if (editingMaintId === id) {
-      cancelMaintenanceEdit();
-    }
-    appData.bikes[activeBike].maintenance = appData.bikes[activeBike].maintenance.filter(m => m.id !== id);
-    saveData();
-  }
-
-  function renderMaintenance() {
-    const list = appData.bikes[activeBike].maintenance;
-    const currentKm = getBikeTotalKm(activeBike);
-
-    const upcoming = list.filter(m => m.status === 'upcoming');
-    const done = list.filter(m => m.status === 'done');
-
-    const renderItem = (m, isUpcoming) => {
-      const diff = (m.km - currentKm).toFixed(1);
-      const badgeHtml = isUpcoming
-        ? `<span class="badge badge-due">${svgIcon('clock', 'icon-sm')} Fällig bei ${m.km} km (in ${diff} km)</span>`
-        : `<span class="badge badge-ok">${svgIcon('check', 'icon-sm')} Erledigt bei ${m.km} km</span>`;
-
-      const isEditing = editingMaintId === m.id;
-
-      return `
-        <div class="${isEditing ? 'editing-box' : ''}" style="padding:12px; background:var(--bg-input); border:1px solid var(--border); border-radius:8px; margin-bottom:10px;">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-            <div>
-              <strong>${m.title}</strong>
-              <div style="font-size:0.82rem; color:var(--text-muted); margin-top:2px;" class="inline-meta">
-                ${svgIcon('calendar', 'icon-sm')} ${m.date} ${m.notes ? `&bull; ${m.notes}` : ''}
-              </div>
-              <div style="margin-top:6px;">${badgeHtml}</div>
-            </div>
-            <div style="display:flex; gap:6px; white-space:nowrap;">
-              ${isUpcoming ? `<button class="btn btn-success btn-icon" onclick="markMaintenanceDone(${m.id})" title="Als erledigt bestätigen">${svgIcon('check', 'icon-sm')}</button>` : ''}
-              <button class="btn btn-edit btn-icon" onclick="editMaintenance(${m.id})" title="Wartung bearbeiten">${svgIcon('edit', 'icon-sm')}</button>
-              <button class="btn btn-danger btn-icon" onclick="deleteMaintenance(${m.id})" title="Wartung löschen">${svgIcon('trash', 'icon-sm')}</button>
-            </div>
-          </div>
-        </div>
-      `;
-    };
-
-    document.getElementById('maint-upcoming-list').innerHTML = upcoming.length
-      ? upcoming.map(m => renderItem(m, true)).join('')
-      : '<p style="color:var(--text-muted); font-size:0.9rem;">Keine offenen Wartungen.</p>';
-
-    document.getElementById('dashboard-upcoming-list').innerHTML = upcoming.length
-      ? upcoming.slice(0, 3).map(m => renderItem(m, true)).join('')
-      : '<p style="color:var(--text-muted); font-size:0.9rem;">Alles erledigt! Keine offenen Wartungen.</p>';
-
-    document.getElementById('maint-done-list').innerHTML = done.length
-      ? done.map(m => renderItem(m, false)).join('')
-      : '<p style="color:var(--text-muted); font-size:0.9rem;">Noch keine abgeschlossenen Wartungen protokolliert.</p>';
-  }
-
-  // 3. DREHMOMENTE: Hinzufügen, Bearbeiten & Löschen
-  function saveTorque(e) {
-    e.preventDefault();
-    const part = document.getElementById('torque-part').value.trim();
-    const val = document.getElementById('torque-val').value.trim();
-    const note = document.getElementById('torque-note').value.trim();
-
-    if (editingTorqueIndex !== null) {
-      appData.bikes[activeBike].torques[editingTorqueIndex] = { part, val, note };
-      cancelTorqueEdit();
-    } else {
-      appData.bikes[activeBike].torques.push({ part, val, note });
-      document.getElementById('torque-part').value = '';
-      document.getElementById('torque-val').value = '';
-      document.getElementById('torque-note').value = '';
-    }
-    saveData();
-  }
-
-  function editTorque(idx) {
-    const item = appData.bikes[activeBike].torques[idx];
-    if (!item) return;
-
-    editingTorqueIndex = idx;
-    document.getElementById('torque-part').value = item.part || '';
-    document.getElementById('torque-val').value = item.val || '';
-    document.getElementById('torque-note').value = item.note || '';
-
-    document.getElementById('torque-form-title').innerHTML = `${svgIcon('edit')} Drehmoment bearbeiten (<span class="active-bike-name">${appData.bikes[activeBike].name}</span>)`;
-    document.getElementById('torque-submit-btn').innerHTML = `${svgIcon('check')} Änderung speichern`;
-    document.getElementById('torque-cancel-btn').classList.remove('hidden');
-
-    renderTorques();
-    document.getElementById('torque-part').focus();
-  }
-
-  function cancelTorqueEdit() {
-    editingTorqueIndex = null;
-    const partInput = document.getElementById('torque-part');
-    if (!partInput) return;
-
-    partInput.value = '';
-    document.getElementById('torque-val').value = '';
-    document.getElementById('torque-note').value = '';
-
-    document.getElementById('torque-form-title').innerHTML = `${svgIcon('plus')} Neues Drehmoment für <span class="active-bike-name">${appData.bikes[activeBike].name}</span>`;
-    document.getElementById('torque-submit-btn').innerHTML = `${svgIcon('save')} Drehmoment hinzufügen`;
-    document.getElementById('torque-cancel-btn').classList.add('hidden');
-    renderTorques();
-  }
-
-  function deleteTorque(idx) {
-    if (editingTorqueIndex === idx) {
-      cancelTorqueEdit();
-    } else if (editingTorqueIndex !== null && idx < editingTorqueIndex) {
-      editingTorqueIndex--;
-    }
-    appData.bikes[activeBike].torques.splice(idx, 1);
-    saveData();
-  }
-
-  function renderTorques() {
-    const query = (document.getElementById('torque-search').value || '').toLowerCase();
-    const tbody = document.getElementById('torque-table-body');
-    const torques = appData.bikes[activeBike].torques;
-
-    tbody.innerHTML = torques
-      .map((t, idx) => ({ ...t, idx }))
-      .filter(t => t.part.toLowerCase().includes(query) || (t.note || '').toLowerCase().includes(query))
-      .map(t => `
-        <tr class="${editingTorqueIndex === t.idx ? 'editing-row' : ''}">
-          <td><strong>${t.part}</strong></td>
-          <td><span class="badge badge-nm">${t.val}</span></td>
-          <td style="color:var(--text-muted);">${t.note || '-'}</td>
-          <td style="text-align:right; white-space:nowrap;">
-            <button class="btn btn-edit btn-icon" onclick="editTorque(${t.idx})" title="Drehmoment bearbeiten">${svgIcon('edit', 'icon-sm')}</button>
-            <button class="btn btn-danger btn-icon" onclick="deleteTorque(${t.idx})" title="Drehmoment löschen">${svgIcon('trash', 'icon-sm')}</button>
-          </td>
-        </tr>
-      `).join('');
-  }
-
-  // 4. SPEZIFIKATIONEN: Hinzufügen, Bearbeiten & Löschen
-  function saveSpec(e) {
-    e.preventDefault();
-    const cat = document.getElementById('spec-cat').value.trim();
-    const val = document.getElementById('spec-val').value.trim();
-
-    if (editingSpecIndex !== null) {
-      appData.bikes[activeBike].specs[editingSpecIndex] = { cat, val };
-      cancelSpecEdit();
-    } else {
-      appData.bikes[activeBike].specs.push({ cat, val });
-      document.getElementById('spec-cat').value = '';
-      document.getElementById('spec-val').value = '';
-    }
-    saveData();
-  }
-
-  function editSpec(idx) {
-    const item = appData.bikes[activeBike].specs[idx];
-    if (!item) return;
-
-    editingSpecIndex = idx;
-    document.getElementById('spec-cat').value = item.cat || '';
-    document.getElementById('spec-val').value = item.val || '';
-
-    document.getElementById('spec-form-title').innerHTML = `${svgIcon('edit', 'icon-sm')} Spezifikation bearbeiten`;
-    document.getElementById('spec-submit-btn').innerHTML = `${svgIcon('check')} Änderung speichern`;
-    document.getElementById('spec-cancel-btn').classList.remove('hidden');
-
-    renderSpecsAndPhoto();
-    document.getElementById('spec-cat').focus();
-  }
-
-  function cancelSpecEdit() {
-    editingSpecIndex = null;
-    const catInput = document.getElementById('spec-cat');
-    if (!catInput) return;
-
-    catInput.value = '';
-    document.getElementById('spec-val').value = '';
-
-    document.getElementById('spec-form-title').innerHTML = `${svgIcon('plus', 'icon-sm')} Spezifikation ergänzen`;
-    document.getElementById('spec-submit-btn').innerHTML = `${svgIcon('save')} Spezifikation ergänzen`;
-    document.getElementById('spec-cancel-btn').classList.add('hidden');
-    renderSpecsAndPhoto();
-  }
-
-  function deleteSpec(idx) {
-    if (editingSpecIndex === idx) {
-      cancelSpecEdit();
-    } else if (editingSpecIndex !== null && idx < editingSpecIndex) {
-      editingSpecIndex--;
-    }
-    appData.bikes[activeBike].specs.splice(idx, 1);
-    saveData();
-  }
-
-  function renderSpecsAndPhoto() {
-    const bike = appData.bikes[activeBike];
-    const photoBox = document.getElementById('bike-photo-preview');
-    if (bike.photo) {
-      photoBox.innerHTML = `
-        <img src="${bike.photo}" alt="${bike.name}" onclick="openPhotoLightbox(event, '${bike.id}')" title="Klicken für Vollbild-Ansicht">
-        <span class="kpi-zoom-badge">${svgIcon('maximize', 'icon-sm')} Vollbild</span>
-      `;
-    } else {
-      photoBox.innerHTML = `<span style="color:var(--text-muted); font-size:0.9rem;">Noch kein Foto für ${bike.name} hinterlegt</span>`;
-    }
-
-    const tbody = document.getElementById('specs-table-body');
-    tbody.innerHTML = bike.specs.map((s, idx) => `
-      <tr class="${editingSpecIndex === idx ? 'editing-row' : ''}">
-        <td style="color:var(--text-muted); width:32%;">${s.cat}</td>
-        <td><strong>${s.val}</strong></td>
-        <td style="text-align:right; white-space:nowrap;">
-          <button class="btn btn-edit btn-icon" onclick="editSpec(${idx})" title="Spezifikation bearbeiten">${svgIcon('edit', 'icon-sm')}</button>
-          <button class="btn btn-danger btn-icon" onclick="deleteSpec(${idx})" title="Spezifikation löschen">${svgIcon('trash', 'icon-sm')}</button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  // 5. FAHRRAD-VERWALTUNG: Weitere Fahrräder anlegen, sortieren, bearbeiten & löschen
-  function saveBikeEntity(e) {
-    e.preventDefault();
-    const name = document.getElementById('bm-name').value.trim();
-    const color = document.getElementById('bm-color').value || '#047857';
-    const batteryWh = Math.max(0, parseInt(document.getElementById('bm-battery').value || '0', 10));
-    const baseKm = Math.max(0, parseFloat(document.getElementById('bm-base-km').value || '0'));
-    const baseHm = Math.max(0, parseInt(document.getElementById('bm-base-hm').value || '0', 10));
-    const baseH = document.getElementById('bm-base-h').value;
-    const baseM = document.getElementById('bm-base-m').value;
-    const baseHours = hmToDecimalHours(baseH, baseM);
-    const hasShock = document.getElementById('bm-has-shock').value === 'true';
-    const forkModel = document.getElementById('bm-fork-model').value.trim() || 'Federgabel';
-    const forkTravelMm = parseFloat(document.getElementById('bm-fork-travel').value || '150');
-    const shockModel = document.getElementById('bm-shock-model').value.trim() || (hasShock ? 'Dämpfer' : 'Kein Dämpfer');
-    const shockStrokeMm = parseFloat(document.getElementById('bm-shock-stroke').value || '55');
-
-    if (editingBikeEntityId !== null && appData.bikes[editingBikeEntityId]) {
-      const b = appData.bikes[editingBikeEntityId];
-      b.name = name;
-      b.color = color;
-      b.batteryWh = batteryWh;
-      b.baseKm = baseKm;
-      b.baseHm = baseHm;
-      b.baseHours = baseHours;
-      b.suspension.hasShock = hasShock;
-      b.suspension.forkModel = forkModel;
-      b.suspension.forkTravelMm = forkTravelMm;
-      b.suspension.shockModel = shockModel;
-      b.suspension.shockStrokeMm = shockStrokeMm;
-      cancelBikeEntityEdit();
-    } else {
-      const newId = 'bike_' + Date.now();
-      const maxOrder = getOrderedBikes().reduce((max, b) => Math.max(max, Number(b.sortOrder || 0)), 0);
-      appData.bikes[newId] = {
-        id: newId,
-        sortOrder: maxOrder + 1,
-        name,
-        color,
-        batteryWh,
-        baseKm,
-        baseHm,
-        baseHours,
-        last50hResetAt: baseHours,
-        last200hResetAt: baseHours,
-        photo: null,
-        suspension: {
-          forkModel,
-          forkTravelMm,
-          forkPsi: '',
-          forkSag: '',
-          forkTokens: '',
-          forkRebound: '',
-          forkLsc: '',
-          forkHsc: '',
-          forkNotes: '',
-          hasShock,
-          shockModel,
-          shockStrokeMm,
-          shockPsi: '',
-          shockSag: '',
-          shockTokens: '',
-          shockRebound: '',
-          shockLsc: '',
-          shockHsc: '',
-          shockNotes: '',
-          tireFront: '',
-          tireRear: '',
-          riderWeight: '',
-          presets: []
-        },
-        specs: [
-          { cat: 'Federgabel', val: `${forkModel} (${forkTravelMm} mm)` },
-          ...(batteryWh > 0 ? [{ cat: 'Akku', val: `${batteryWh} Wh` }] : [])
-        ],
-        torques: [
-          { part: 'Steckachse Vorne', val: '10 - 12 Nm', note: 'Inbus 6 mm' },
-          { part: 'Steckachse Hinten', val: '12 - 15 Nm', note: 'Inbus 6 mm' },
-          { part: 'Vorbau-Klemmung', val: '5 - 6 Nm', note: 'Drehmomentschlüssel' }
-        ],
-        maintenance: []
-      };
-      activeBike = newId;
-      cancelBikeEntityEdit();
-    }
-
-    saveData();
-  }
-
-  function editBikeEntity(id) {
-    const b = appData.bikes[id];
-    if (!b) return;
-
-    editingBikeEntityId = id;
-    document.getElementById('bm-name').value = b.name || '';
-    document.getElementById('bm-color').value = b.color || '#047857';
-    document.getElementById('bm-battery').value = b.batteryWh || 0;
-    document.getElementById('bm-base-km').value = b.baseKm || 0;
-    document.getElementById('bm-base-hm').value = b.baseHm || 0;
-
-    const hm = decimalHoursToHM(b.baseHours || 0);
-    document.getElementById('bm-base-h').value = hm.h;
-    document.getElementById('bm-base-m').value = hm.m;
-
-    document.getElementById('bm-has-shock').value = b.suspension.hasShock ? 'true' : 'false';
-    document.getElementById('bm-fork-model').value = b.suspension.forkModel || '';
-    document.getElementById('bm-fork-travel').value = b.suspension.forkTravelMm || 150;
-    document.getElementById('bm-shock-model').value = b.suspension.shockModel || '';
-    document.getElementById('bm-shock-stroke').value = b.suspension.shockStrokeMm || 55;
-
-    document.getElementById('bike-form-title').innerHTML = `${svgIcon('edit', 'icon-sm')} Fahrrad "${b.name}" bearbeiten`;
-    document.getElementById('bm-submit-btn').innerHTML = `${svgIcon('check')} Änderung speichern`;
-    document.getElementById('bm-cancel-btn').classList.remove('hidden');
-
-    renderBikeManagerList();
-    document.getElementById('bm-name').focus();
-  }
-
-  function cancelBikeEntityEdit() {
-    editingBikeEntityId = null;
-    const nameInput = document.getElementById('bm-name');
-    if (!nameInput) return;
-
-    nameInput.value = '';
-    document.getElementById('bm-color').value = '#047857';
-    document.getElementById('bm-battery').value = '0';
-    document.getElementById('bm-base-km').value = '0';
-    document.getElementById('bm-base-hm').value = '0';
-    document.getElementById('bm-base-h').value = '0';
-    document.getElementById('bm-base-m').value = '0';
-    document.getElementById('bm-has-shock').value = 'true';
-    document.getElementById('bm-fork-model').value = '';
-    document.getElementById('bm-fork-travel').value = '';
-    document.getElementById('bm-shock-model').value = '';
-    document.getElementById('bm-shock-stroke').value = '';
-
-    document.getElementById('bike-form-title').textContent = 'Neues Fahrrad anlegen';
-    document.getElementById('bm-submit-btn').innerHTML = `${svgIcon('plus')} Fahrrad hinzufügen`;
-    document.getElementById('bm-cancel-btn').classList.add('hidden');
-
-    renderBikeManagerList();
-  }
-
-  function deleteBikeEntity(id) {
-    const keys = Object.keys(appData.bikes);
-    if (keys.length <= 1) {
-      alert('Mindestens ein Fahrrad muss in der App verbleiben.');
-      return;
-    }
-    const b = appData.bikes[id];
-    if (!confirm(`Möchtest du das Fahrrad "${b.name}" inklusive seiner Wartungen, Drehmomente und Touren wirklich löschen?`)) {
-      return;
-    }
-    delete appData.bikes[id];
-    appData.tours = appData.tours.filter(t => t.bike !== id);
-    const remainingOrdered = getOrderedBikes();
-    remainingOrdered.forEach((bikeItem, idx) => {
-      appData.bikes[bikeItem.id].sortOrder = idx + 1;
-    });
-    if (activeBike === id) {
-      activeBike = remainingOrdered[0].id;
-    }
-    if (editingBikeEntityId === id) {
-      cancelBikeEntityEdit();
-    }
-    saveData();
-  }
-
-  function renderBikeManagerList() {
-    const container = document.getElementById('bike-manager-list');
-    if (!container) return;
-    const bikesList = getOrderedBikes();
-
-    container.innerHTML = bikesList.map((b, idx) => {
-      const totalKm = getBikeTotalKm(b.id);
-      const totalH = getBikeTotalHours(b.id);
-      const totalHm = getBikeTotalHm(b.id);
-      const avgSpeed = formatAvgSpeed(totalKm, totalH);
-      const isEditing = editingBikeEntityId === b.id;
-      const isFirst = idx === 0;
-      const isLast = idx === bikesList.length - 1;
-
-      const thumbClickAction = b.photo
-        ? `openPhotoLightbox(event, '${b.id}')`
-        : `triggerQuickPhotoUpload(event, '${b.id}')`;
-      const thumbTitle = b.photo
-        ? `Vollbild-Foto von ${b.name} anzeigen`
-        : `Foto für ${b.name} auswählen`;
-
-      const thumbHtml = b.photo
-        ? `<img src="${b.photo}" alt="${b.name}">`
-        : `<span style="color:${b.color};">${svgIcon('camera', 'icon-sm')}</span>`;
-
-      return `
-        <div class="${isEditing ? 'editing-box' : ''}" style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-input); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:10px; gap:10px;">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <div class="bm-thumb" onclick="${thumbClickAction}" title="${thumbTitle}">
-              ${thumbHtml}
-            </div>
-            <div>
-              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                <span class="pos-badge">#${idx + 1}</span>
-                <span style="width:12px; height:12px; border-radius:50%; background:${b.color}; display:inline-block;"></span>
-                <strong>${b.name}</strong>
-                <span class="badge badge-nm">${b.batteryWh > 0 ? `${b.batteryWh} Wh` : 'Bio-Bike'}</span>
-              </div>
-              <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">
-                ${formatKm(totalKm)} &bull; ${formatDurationHM(totalH)} ${avgSpeed ? `&bull; Ø ${avgSpeed}` : ''} &bull; ${totalHm.toLocaleString('de-DE')} hm &bull; ${b.suspension.hasShock ? 'Fully' : 'Hardtail/Gravel'}
-              </div>
-            </div>
-          </div>
-          <div style="display:flex; gap:5px; white-space:nowrap; align-items:center;">
-            <button class="btn btn-move btn-icon" onclick="moveBikeOrder('${b.id}', -1)" ${isFirst ? 'disabled' : ''} title="Position nach oben verschieben">${svgIcon('arrow-up', 'icon-sm')}</button>
-            <button class="btn btn-move btn-icon" onclick="moveBikeOrder('${b.id}', 1)" ${isLast ? 'disabled' : ''} title="Position nach unten verschieben">${svgIcon('arrow-down', 'icon-sm')}</button>
-            <button class="btn btn-edit btn-icon" onclick="editBikeEntity('${b.id}')" title="Fahrrad-Eckdaten bearbeiten">${svgIcon('edit', 'icon-sm')}</button>
-            <button class="btn btn-danger btn-icon" onclick="deleteBikeEntity('${b.id}')" title="Fahrrad löschen">${svgIcon('trash', 'icon-sm')}</button>
-          </div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  function compressImage(file, maxWidth, callback) {
-    const reader = new FileReader();
-    reader.onload = function(event) {
-      const img = new Image();
-      img.onload = function() {
-        const canvas = document.createElement('canvas');
-        const scale = Math.min(1, maxWidth / img.width);
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        callback(canvas.toDataURL('image/jpeg', 0.82));
-      };
-      img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
-  }
-
-  // Schneidet ein hochgeladenes App-Icon exakt quadratisch (Center-Crop) zu und füllt Transparenz randlos mit #36404c auf
-  function createSquareAppIcon(file, size, callback) {
-    const reader = new FileReader();
-    reader.onload = function(event) {
-      const img = new Image();
-      img.onload = function() {
-        const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-
-        // 1. Vollflächig mit dem dunklen App-Hintergrund füllen (verhindert weiße Ränder bei transparenten PNGs)
-        ctx.fillStyle = '#36404c';
-        ctx.fillRect(0, 0, size, size);
-
-        // 2. Quadratischen Ausschnitt aus der Bildmitte berechnen (Center-Crop ohne Ränder)
-        const minSide = Math.min(img.width, img.height);
-        const sx = (img.width - minSide) / 2;
-        const sy = (img.height - minSide) / 2;
-
-        ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
-        callback(canvas.toDataURL('image/png'));
-      };
-      img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function handleBikePhotoUpload(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    compressImage(file, 1000, (dataUrl) => {
-      appData.bikes[activeBike].photo = dataUrl;
-      saveData();
-    });
-  }
-
-  function removeBikePhoto() {
-    appData.bikes[activeBike].photo = null;
-    saveData();
-  }
-
-  function handleAppIconUpload(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    createSquareAppIcon(file, 512, (dataUrl) => {
-      appData.appIcon = dataUrl;
-      saveData();
-    });
-    e.target.value = '';
-  }
-
-  function resetAppIcon() {
-    appData.appIcon = null;
-    saveData();
-  }
-
-  function exportBackup() {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
-    const dlAnchor = document.createElement('a');
-    dlAnchor.setAttribute("href", dataStr);
-    dlAnchor.setAttribute("download", `bike_tlc_backup_${new Date().toISOString().slice(0,10)}.json`);
-    dlAnchor.click();
-  }
-
-  function importBackup(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        appData = ensureDataIntegrity(JSON.parse(ev.target.result));
-        saveData();
-        alert('Backup erfolgreich geladen!');
-      } catch (err) {
-        alert('Ungültige Backup-Datei.');
-      }
-    };
-    reader.readAsText(file);
-  }
-
-  function initSupabase() {
-    const rawCfg = localStorage.getItem(SB_CONFIG_KEY);
-    if (!rawCfg) return;
-    try {
-      const cfg = JSON.parse(rawCfg);
-      if (cfg.url && cfg.key) {
-        document.getElementById('sb-url').value = cfg.url;
-        document.getElementById('sb-key').value = cfg.key;
-        supabaseClient = window.supabase.createClient(cfg.url, cfg.key);
-        pullFromCloud(false);
-      }
-    } catch (e) {}
-  }
-
-  function saveSupabaseConfig() {
-    const url = document.getElementById('sb-url').value.trim();
-    const key = document.getElementById('sb-key').value.trim();
-    if (!url || !key) {
-      alert('Bitte sowohl Project URL als auch Anon Key eingeben.');
-      return;
-    }
-    localStorage.setItem(SB_CONFIG_KEY, JSON.stringify({ url, key }));
-    supabaseClient = window.supabase.createClient(url, key);
-    pullFromCloud(true);
-  }
-
-  async function pullFromCloud(showMessage) {
-    if (!supabaseClient) return;
-    const statusMsg = document.getElementById('sb-status-msg');
-    try {
-      const { data, error } = await supabaseClient
-        .from('bike_app_state')
-        .select('payload')
-        .eq('id', 1)
-        .single();
-
-      if (error) throw error;
-
-      if (data && data.payload && Object.keys(data.payload).length > 0) {
-        appData = ensureDataIntegrity(data.payload);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
-        renderAll();
-        setSyncStatus(true, 'Cloud verbunden & synchron');
-        if (showMessage && statusMsg) statusMsg.textContent = 'Daten & Komoot-Inbox erfolgreich aus der Supabase-Cloud geladen.';
-      } else {
-        await pushToCloud(false);
-        setSyncStatus(true, 'Initialer Stand in Cloud gespeichert');
-      }
-    } catch (err) {
-      setSyncStatus(false, 'Cloud-Fehler (Prüfe URL/Key)');
-      if (showMessage && statusMsg) statusMsg.textContent = 'Fehler: ' + err.message;
-    }
-  }
-
-  async function pushToCloud(showMessage) {
-    if (!supabaseClient) return;
-    const statusMsg = document.getElementById('sb-status-msg');
-    try {
-      const { data: existing } = await supabaseClient
-        .from('bike_app_state')
-        .select('payload')
-        .eq('id', 1)
-        .single();
-
-      if (existing && existing.payload) {
-        if (Array.isArray(existing.payload.komootInbox) && existing.payload.komootInbox.length > 0) {
-          appData.komootInbox = existing.payload.komootInbox;
-          appData.komootLastSync = existing.payload.komootLastSync || appData.komootLastSync;
-        }
-      }
-
-      const { error } = await supabaseClient
-        .from('bike_app_state')
-        .upsert({ id: 1, payload: appData, updated_at: new Date().toISOString() });
-
-      if (error) throw error;
-      setSyncStatus(true, 'Cloud synchronisiert');
-      if (showMessage && statusMsg) statusMsg.textContent = 'Aktueller Stand erfolgreich in die Cloud übertragen.';
-    } catch (err) {
-      setSyncStatus(false, 'Sync fehlgeschlagen');
-      if (showMessage && statusMsg) statusMsg.textContent = 'Fehler beim Senden: ' + err.message;
-    }
-  }
-
-  function setSyncStatus(online, text) {
-    const dot = document.getElementById('sync-dot');
-    const txt = document.getElementById('sync-text');
-    dot.className = 'sync-dot ' + (online ? 'online' : '');
-    txt.textContent = text;
-  }
-
-  window.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('tour-date').value = new Date().toISOString().split('T')[0];
-    document.getElementById('maint-date').value = new Date().toISOString().split('T')[0];
-    const firstOrdered = getOrderedBikes()[0];
-    selectBike(firstOrdered ? firstOrdered.id : 'propain');
-    initSupabase();
-    initGitHubConfig();
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
-    }
-  });
-</script>
-</body>
-</html>
+        <div style="display:flex; justify-content:space-between; align-items:center; font
